@@ -27,6 +27,16 @@ function App() {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [mobileTab, setMobileTab] = useState<MobileTab>('player');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Detectar se é mobile
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Load last channel on mount
   useEffect(() => {
@@ -152,39 +162,43 @@ function App() {
         />
       )}
 
-      {/* Mobile Content */}
-      <div className="mobile-content">
-        <div className={`mobile-view ${mobileTab === 'player' ? 'active' : ''}`}>
+      {/* Mobile Content - Só renderiza no mobile */}
+      {isMobile && (
+        <div className="mobile-content">
+          <div className={`mobile-view ${mobileTab === 'player' ? 'active' : ''}`}>
+            <VideoPlayer
+              channel={selectedChannel}
+              isTheaterMode={isTheaterMode}
+              onToggleTheater={handleToggleTheater}
+              onOpenGuide={() => setIsGuideOpen(true)}
+            />
+          </div>
+          <div className={`mobile-view ${mobileTab === 'channels' ? 'active' : ''}`}>
+            <Sidebar
+              channels={channels}
+              activeChannelId={selectedChannel?.id || null}
+              favorites={favorites}
+              onSelectChannel={handleSelectChannel}
+              onToggleFavorite={handleToggleFavorite}
+              isCollapsed={false}
+              onToggleCollapse={() => {}}
+              isMobileView={true}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Main Content - Só renderiza no desktop */}
+      {!isMobile && (
+        <main className="main-content">
           <VideoPlayer
             channel={selectedChannel}
             isTheaterMode={isTheaterMode}
             onToggleTheater={handleToggleTheater}
             onOpenGuide={() => setIsGuideOpen(true)}
           />
-        </div>
-        <div className={`mobile-view ${mobileTab === 'channels' ? 'active' : ''}`}>
-          <Sidebar
-            channels={channels}
-            activeChannelId={selectedChannel?.id || null}
-            favorites={favorites}
-            onSelectChannel={handleSelectChannel}
-            onToggleFavorite={handleToggleFavorite}
-            isCollapsed={false}
-            onToggleCollapse={() => {}}
-            isMobileView={true}
-          />
-        </div>
-      </div>
-
-      {/* Desktop Main Content */}
-      <main className="main-content desktop-only">
-        <VideoPlayer
-          channel={selectedChannel}
-          isTheaterMode={isTheaterMode}
-          onToggleTheater={handleToggleTheater}
-          onOpenGuide={() => setIsGuideOpen(true)}
-        />
-      </main>
+        </main>
+      )}
 
       {/* Guia de Programação */}
       <ProgramGuide
