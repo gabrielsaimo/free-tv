@@ -623,7 +623,7 @@ export const VideoPlayer = memo(function VideoPlayer({
                     <small>Cole em Smart TV ou outro app</small>
                   </button>
 
-                  {navigator.share && (
+                  {'share' in navigator && (
                     <button className="cast-option" onClick={() => handleCastOption('share')}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="18" cy="5" r="3" />
