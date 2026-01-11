@@ -50,6 +50,7 @@ const channelToMeuGuiaCode: Record<string, string> = {
   'espn2': 'ES2',
   'espn3': 'ES3',
   'espn4': 'ES4',
+  'espn5': 'ES5',
   
   // TV Aberta
   'sbt': 'SBT',
