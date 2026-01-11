@@ -56,6 +56,7 @@ export const VideoPlayer = memo(function VideoPlayer({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
+  const [videoResolution, setVideoResolution] = useState<string | null>(null);
   const controlsTimeoutRef = useRef<number | null>(null);
   const isPlayingRef = useRef(false);
 
@@ -254,6 +255,45 @@ export const VideoPlayer = memo(function VideoPlayer({
       video.removeEventListener('leavepictureinpicture', handlePiPLeave);
     };
   }, []);
+
+  // Video resolution detection
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const updateResolution = () => {
+      if (video.videoWidth && video.videoHeight) {
+        const height = video.videoHeight;
+        let label = '';
+        if (height >= 2160) label = '4K';
+        else if (height >= 1440) label = '2K';
+        else if (height >= 1080) label = '1080p';
+        else if (height >= 720) label = '720p';
+        else if (height >= 480) label = '480p';
+        else if (height >= 360) label = '360p';
+        else label = `${height}p`;
+        setVideoResolution(label);
+      } else {
+        setVideoResolution(null);
+      }
+    };
+
+    // Update on loadedmetadata and resize events
+    video.addEventListener('loadedmetadata', updateResolution);
+    video.addEventListener('resize', updateResolution);
+    
+    // Also update periodically in case resolution changes during stream
+    const interval = setInterval(updateResolution, 2000);
+    
+    // Initial check
+    updateResolution();
+
+    return () => {
+      video.removeEventListener('loadedmetadata', updateResolution);
+      video.removeEventListener('resize', updateResolution);
+      clearInterval(interval);
+    };
+  }, [channel]);
 
   // Cast availability listener
   useEffect(() => {
@@ -598,7 +638,12 @@ export const VideoPlayer = memo(function VideoPlayer({
 
               <div className="channel-indicator">
                 <span className="live-badge">AO VIVO</span>
-                <span className="channel-name">{channel.name}</span>
+                <div className="channel-info">
+                  <span className="channel-name">{channel.name}</span>
+                  {videoResolution && (
+                    <span className="video-resolution">{videoResolution}</span>
+                  )}
+                </div>
               </div>
             </div>
 
