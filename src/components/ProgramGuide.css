@@ -313,23 +313,26 @@
 .now-marker {
   position: absolute;
   top: 0;
-  bottom: 0;
   width: 2px;
   z-index: 100;
   pointer-events: none;
+  height: 100%;
+  min-height: 100%;
 }
 
 .now-marker-line {
   position: absolute;
   top: 0;
-  bottom: 0;
   left: 0;
   width: 2px;
-  background: linear-gradient(to bottom, #ef4444, transparent);
+  height: 100%;
+  min-height: 100%;
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.3);
 }
 
 .now-marker-label {
-  position: absolute;
+  position: sticky;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
@@ -337,9 +340,11 @@
   color: white;
   font-size: 9px;
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 0 0 4px 4px;
+  padding: 3px 10px;
+  border-radius: 0 0 6px 6px;
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  z-index: 101;
 }
 
 /* Tooltip */

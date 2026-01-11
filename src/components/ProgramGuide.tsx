@@ -266,7 +266,10 @@ export const ProgramGuide = memo(function ProgramGuide({
             {/* Marcador AGORA */}
             <div 
               className="now-marker" 
-              style={{ left: `${getNowPosition()}px` }}
+              style={{ 
+                left: `${getNowPosition()}px`,
+                height: `${channels.length * 60}px`
+              }}
             >
               <div className="now-marker-line" />
               <div className="now-marker-label">AGORA</div>

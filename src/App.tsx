@@ -3,7 +3,7 @@ import { Sidebar } from './components/Sidebar';
 import { VideoPlayer } from './components/VideoPlayer';
 import { ProgramGuide } from './components/ProgramGuide';
 import { Toast } from './components/Toast';
-import { channels } from './data/channels';
+import { getAllChannels } from './data/channels';
 import type { Channel } from './types/channel';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -20,6 +20,7 @@ type MobileTab = 'player' | 'channels';
 function App() {
   const [favorites, setFavorites] = useLocalStorage<string[]>('tv-favorites', []);
   const [lastChannelId, setLastChannelId] = useLocalStorage<string | null>('tv-last-channel', null);
+  const [adultModeUnlocked, setAdultModeUnlocked] = useLocalStorage<boolean>('tv-adult-mode', false);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -28,6 +29,9 @@ function App() {
   const [toast, setToast] = useState<ToastState | null>(null);
   const [mobileTab, setMobileTab] = useState<MobileTab>('player');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Lista de canais baseada no modo adulto
+  const channels = getAllChannels(adultModeUnlocked);
 
   // Detectar se é mobile
   useEffect(() => {
@@ -52,6 +56,12 @@ function App() {
     setToast({ message, type, id: Date.now() });
     setTimeout(() => setToast(null), 3000);
   }, []);
+
+  // Handler para desbloquear modo adulto
+  const handleUnlockAdultMode = useCallback(() => {
+    setAdultModeUnlocked(true);
+    showToast('🔓 Modo secreto desbloqueado!', 'success');
+  }, [setAdultModeUnlocked, showToast]);
 
   const handleSelectChannel = useCallback((channel: Channel) => {
     setSelectedChannel(channel);
@@ -151,6 +161,8 @@ function App() {
           onToggleFavorite={handleToggleFavorite}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={handleToggleSidebar}
+          onUnlockAdultMode={handleUnlockAdultMode}
+          isAdultModeUnlocked={adultModeUnlocked}
         />
       </div>
 
@@ -183,6 +195,8 @@ function App() {
               isCollapsed={false}
               onToggleCollapse={() => {}}
               isMobileView={true}
+              onUnlockAdultMode={handleUnlockAdultMode}
+              isAdultModeUnlocked={adultModeUnlocked}
             />
           </div>
         </div>

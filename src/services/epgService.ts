@@ -309,11 +309,50 @@ async function fetchChannelEPGAsync(channelId: string): Promise<Program[]> {
 }
 
 /**
- * Inicializa EPG
+ * Inicializa EPG - carrega todos os canais em segundo plano
  */
+let backgroundLoadStarted = false;
+
 export async function fetchRealEPG(): Promise<boolean> {
   console.log('[EPG] Service inicializado - meuguia.tv scraping');
+  
+  // Inicia carregamento em segundo plano apenas uma vez
+  if (!backgroundLoadStarted) {
+    backgroundLoadStarted = true;
+    loadAllEPGInBackground();
+  }
+  
   return true;
+}
+
+/**
+ * Carrega EPG de todos os canais em segundo plano
+ */
+async function loadAllEPGInBackground(): Promise<void> {
+  const allChannelIds = Object.keys(channelToMeuGuiaCode);
+  console.log(`[EPG] Iniciando carregamento em segundo plano de ${allChannelIds.length} canais...`);
+  
+  // Carrega em lotes para não sobrecarregar
+  const batchSize = 3;
+  const delayBetweenBatches = 1000; // 1 segundo entre lotes
+  
+  for (let i = 0; i < allChannelIds.length; i += batchSize) {
+    const batch = allChannelIds.slice(i, i + batchSize);
+    
+    // Carrega o lote em paralelo
+    await Promise.all(
+      batch.map(channelId => fetchChannelEPGAsync(channelId))
+    );
+    
+    console.log(`[EPG] Carregados ${Math.min(i + batchSize, allChannelIds.length)}/${allChannelIds.length} canais`);
+    
+    // Delay entre lotes para não sobrecarregar
+    if (i + batchSize < allChannelIds.length) {
+      await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
+    }
+  }
+  
+  console.log('[EPG] Carregamento em segundo plano concluído!');
 }
 
 /**

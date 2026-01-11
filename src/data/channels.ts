@@ -29,13 +29,14 @@ const rawChannels = [
   { id: 'megapix', name: 'Megapix', url: 'https://canais.fazoeli.co.za/fontes/smart/megapix.m3u8', category: 'Filmes', logo: `${LOGO_BASE}/megapix-br.png` },
   { id: 'studio-universal', name: 'Studio Universal', url: 'https://canais.fazoeli.co.za/fontes/smart/studiouniversal.m3u8', category: 'Filmes', logo: `${LOGO_BASE}/studio-universal-br.png` },
   { id: 'curta', name: 'Curta!', url: 'https://canais.fazoeli.co.za/fontes/smart/curta.m3u8', category: 'Filmes', logo: getFallbackLogo('Curta') },
+  
 
   // === SERIES ===
   { id: 'warner', name: 'Warner Channel', url: 'https://canais.fazoeli.co.za/fontes/smart/warnerchannel.m3u8', category: 'Series', logo: `${LOGO_BASE}/warner-channel-br.png` },
   { id: 'tnt', name: 'TNT', url: 'https://canais.fazoeli.co.za/fontes/smart/tnt.m3u8', category: 'Series', logo: `${LOGO_BASE}/tnt-br.png` },
   { id: 'tnt-series', name: 'TNT Series', url: 'https://canais.fazoeli.co.za/fontes/smart/tntnovelas.m3u8', category: 'Series', logo: `${LOGO_BASE}/tnt-series-br.png` },
   { id: 'axn', name: 'AXN', url: 'https://canais.fazoeli.co.za/fontes/smart/axn.m3u8', category: 'Series', logo: `${LOGO_BASE}/axn-br.png` },
-  { id: 'sony', name: 'Sony Channel', url: 'https://1hge39g.p.wvcast.com:30002/proxy/A3us3cC0/sonychannel.m3u8', category: 'Series', logo: `${LOGO_BASE}/sony-channel-br.png` },
+  { id: 'sony', name: 'Sony Channel', url: 'https://canais.fazoeli.co.za/fontes/smart/sonychannel.m3u8', category: 'Series', logo: `${LOGO_BASE}/sony-channel-br.png` },
   { id: 'universal-tv', name: 'Universal TV', url: 'https://canais.fazoeli.co.za/fontes/smart/universaltv.m3u8', category: 'Series', logo: `${LOGO_BASE}/universal-tv-br.png` },
   { id: 'ae', name: 'A&E', url: 'https://canais.fazoeli.co.za/fontes/smart/ae.m3u8', category: 'Series', logo: `${LOGO_BASE}/a-and-e-br.png` },
 
@@ -49,8 +50,8 @@ const rawChannels = [
   { id: '24h-dragonball', name: '24h Dragon Ball', url: 'https://canais.fazoeli.co.za/fontes/smart/24h_dragonball.m3u8', category: 'Infantil', logo: getFallbackLogo('Dragon Ball') },
   { id: '24h-odeia-chris', name: '24h Todo Mundo Odeia o Chris', url: 'https://canais.fazoeli.co.za/fontes/smart/24h_odeiachris.m3u8', category: 'Infantil', logo: getFallbackLogo('Chris') },
   { id: 'adult-swim', name: 'Adult Swim', url: 'https://canais.fazoeli.co.za/fontes/smart/adultswim.m3u8', category: 'Infantil', logo: `${LOGO_US}/adult-swim-us.png` },
-
-  // === DOCUMENTARIOS ===
+  { id: 'nickelodeon', name: 'Nickelodeon', url: 'https://canais.fazoeli.co.za/fontes/smart/nickelodeon.m3u8', category: 'Infantil', logo: `${LOGO_BASE}/nickelodeon-br.png` },
+ // === DOCUMENTARIOS ===
   { id: 'discovery', name: 'Discovery Channel', url: 'https://canais.fazoeli.co.za/fontes/smart/discoverychannel.m3u8', category: 'Documentarios', logo: `${LOGO_INTL}/discovery-channel-int.png` },
   { id: 'discovery-turbo', name: 'Discovery Turbo', url: 'https://canais.fazoeli.co.za/fontes/smart/discoveryturbo.m3u8', category: 'Documentarios', logo: `${LOGO_BASE}/discovery-turbo-br.png` },
   { id: 'animal-planet', name: 'Animal Planet', url: 'https://canais.fazoeli.co.za/fontes/smart/animalplanet.m3u8', category: 'Documentarios', logo: `${LOGO_INTL}/animal-planet-int.png` },
@@ -83,7 +84,7 @@ const rawChannels = [
   { id: 'rede-tv', name: 'RedeTV!', url: 'https://canais.fazoeli.co.za/fontes/smart/redetv.m3u8', category: 'TV Aberta', logo: `${LOGO_BASE}/rede-tv-br.png` },
   { id: 'tv-brasil', name: 'TV Brasil', url: 'https://canais.fazoeli.co.za/fontes/smart/tvbrasil.m3u8', category: 'TV Aberta', logo: `${LOGO_BASE}/tv-brasil-br.png` },
   { id: 'aparecida', name: 'TV Aparecida', url: 'https://canais.fazoeli.co.za/fontes/smart/aparecida.m3u8', category: 'TV Aberta', logo: `${LOGO_BASE}/tv-aparecida-br.png` },
-
+  
   // === ESPORTES ===
   { id: 'sportv', name: 'SporTV', url: 'https://canais.fazoeli.co.za/fontes/smart/sportv.m3u8', category: 'Esportes', logo: `${LOGO_BASE}/sportv-br.png` },
   { id: 'sportv2', name: 'SporTV 2', url: 'https://canais.fazoeli.co.za/fontes/smart/sportv2.m3u8', category: 'Esportes', logo: `${LOGO_BASE}/sportv2-br.png` },
@@ -95,13 +96,43 @@ const rawChannels = [
   { id: 'premiere', name: 'Premiere', url: 'https://canais.fazoeli.co.za/fontes/smart/premiere.m3u8', category: 'Esportes', logo: `${LOGO_BASE}/premiere-br.png` },
   { id: 'combate', name: 'Combate', url: 'https://canais.fazoeli.co.za/fontes/smart/combate.m3u8', category: 'Esportes', logo: `${LOGO_INTL}/combate-int.png` },
   { id: 'band-sports', name: 'Band Sports', url: 'https://canais.fazoeli.co.za/fontes/smart/bandsports.m3u8', category: 'Esportes', logo: `${LOGO_BASE}/band-sports-br.png` },
+
+  // === ADULTO (SECRETO) ===
+  { id: 'playboy', name: 'Playboy TV', url: 'https://canais.fazoeli.co.za/fontes/smart/playboy.m3u8', category: 'Adulto', logo: getFallbackLogo('Playboy') },
+  { id: 'sexy-hot', name: 'Sexy Hot', url: 'https://canais.fazoeli.co.za/fontes/smart/sexyhot.m3u8', category: 'Adulto', logo: getFallbackLogo('Sexy Hot') },
 ];
 
-// Ordena alfabeticamente e adiciona número do canal + logo fallback
-export const channels: Channel[] = rawChannels
-  .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+// Ordem das categorias para exibição
+export const categoryOrder = [
+  'TV Aberta',
+  'Filmes',
+  'Series',
+  'Esportes',
+  'Noticias',
+  'Infantil',
+  'Documentarios',
+  'Entretenimento',
+  'Adulto',
+];
+
+// Mantém ordem por categoria e adiciona número do canal + logo fallback
+const allChannels: Channel[] = rawChannels
   .map((channel, index) => ({
     ...channel,
     channelNumber: index + 1,
     logo: channel.logo || getFallbackLogo(channel.name),
   }));
+
+// Canais públicos (sem adulto)
+export const channels: Channel[] = allChannels.filter(ch => ch.category !== 'Adulto');
+
+// Canais adultos (secretos)
+export const adultChannels: Channel[] = allChannels.filter(ch => ch.category === 'Adulto');
+
+// Função para obter todos os canais incluindo adultos
+export const getAllChannels = (includeAdult: boolean): Channel[] => {
+  if (includeAdult) {
+    return allChannels;
+  }
+  return channels;
+};

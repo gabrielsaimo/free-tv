@@ -20,8 +20,9 @@ export const VideoPlayer = memo(function VideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const intentionalPauseRef = useRef(false);
   
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(() => {
     const saved = localStorage.getItem('tv-volume');
@@ -30,6 +31,8 @@ export const VideoPlayer = memo(function VideoPlayer({
   const [isMirrored, setIsMirrored] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPiP, setIsPiP] = useState(false);
+  const [isCasting, setIsCasting] = useState(false);
+  const [showCastModal, setShowCastModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
@@ -43,6 +46,7 @@ export const VideoPlayer = memo(function VideoPlayer({
     const video = videoRef.current;
     setIsLoading(true);
     setError(null);
+    intentionalPauseRef.current = false; // Reset pausa intencional ao trocar de canal
 
     // Cleanup previous instance
     if (hlsRef.current) {
@@ -116,10 +120,35 @@ export const VideoPlayer = memo(function VideoPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
+    const handlePlay = () => {
+      setIsPlaying(true);
+      intentionalPauseRef.current = false;
+    };
+    const handlePause = () => {
+      setIsPlaying(false);
+      // Auto-resume: se o vídeo pausar e NÃO foi pausa intencional do usuário
+      // Isso garante que o vídeo nunca fique pausado acidentalmente
+      if (!intentionalPauseRef.current && channel && video.readyState >= 2) {
+        video.play().catch(() => {
+          // Se autoplay falhar, tenta com muted
+          video.muted = true;
+          video.play().catch(() => {});
+        });
+      }
+    };
     const handleWaiting = () => setIsLoading(true);
-    const handleCanPlay = () => setIsLoading(false);
+    const handleCanPlay = () => {
+      setIsLoading(false);
+      // Quando o vídeo estiver pronto para reproduzir, garante que está em play
+      // (exceto se o usuário pausou intencionalmente)
+      if (video.paused && channel && !intentionalPauseRef.current) {
+        video.play().catch(() => {
+          // Se autoplay falhar, tenta com muted
+          video.muted = true;
+          video.play().catch(() => {});
+        });
+      }
+    };
 
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
@@ -132,7 +161,7 @@ export const VideoPlayer = memo(function VideoPlayer({
       video.removeEventListener('waiting', handleWaiting);
       video.removeEventListener('canplay', handleCanPlay);
     };
-  }, []);
+  }, [channel]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -161,14 +190,41 @@ export const VideoPlayer = memo(function VideoPlayer({
     };
   }, []);
 
+  // Cast availability listener
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Check for Remote Playback API support
+    if ('remote' in video) {
+      const remote = (video as any).remote;
+
+      const handleConnecting = () => setIsCasting(true);
+      const handleConnect = () => setIsCasting(true);
+      const handleDisconnect = () => setIsCasting(false);
+
+      remote.addEventListener('connecting', handleConnecting);
+      remote.addEventListener('connect', handleConnect);
+      remote.addEventListener('disconnect', handleDisconnect);
+
+      return () => {
+        remote.removeEventListener('connecting', handleConnecting);
+        remote.removeEventListener('connect', handleConnect);
+        remote.removeEventListener('disconnect', handleDisconnect);
+      };
+    }
+  }, [channel]);
+
   // Control handlers - declarados antes do useEffect que os usa
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
     
     if (video.paused) {
+      intentionalPauseRef.current = false;
       video.play();
     } else {
+      intentionalPauseRef.current = true;
       video.pause();
     }
   }, []);
@@ -206,6 +262,79 @@ export const VideoPlayer = memo(function VideoPlayer({
       console.error('PiP error:', err);
     }
   }, []);
+
+  const toggleCast = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Primeiro tenta a Remote Playback API nativa
+    if ('remote' in video) {
+      try {
+        const remote = (video as any).remote;
+        await remote.prompt();
+        return;
+      } catch (err) {
+        // Se falhar, mostra o modal com opções
+        console.log('Remote Playback não disponível, mostrando modal');
+      }
+    }
+
+    // Mostra o modal de opções de cast
+    setShowCastModal(true);
+  }, []);
+
+  const handleCastOption = useCallback(async (option: 'airplay' | 'copy' | 'share') => {
+    const video = videoRef.current;
+    
+    switch (option) {
+      case 'airplay':
+        // Tenta usar AirPlay (Safari)
+        if (video && 'webkitShowPlaybackTargetPicker' in video) {
+          (video as any).webkitShowPlaybackTargetPicker();
+        } else {
+          alert('AirPlay não está disponível neste navegador. Use Safari no Mac ou iOS.');
+        }
+        break;
+      
+      case 'copy':
+        // Copia o link do canal
+        if (channel) {
+          try {
+            await navigator.clipboard.writeText(channel.url);
+            alert('Link copiado! Cole em outro dispositivo ou app de streaming.');
+          } catch {
+            // Fallback para navegadores antigos
+            const textArea = document.createElement('textarea');
+            textArea.value = channel.url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Link copiado!');
+          }
+        }
+        break;
+      
+      case 'share':
+        // Usa Web Share API se disponível
+        if (navigator.share && channel) {
+          try {
+            await navigator.share({
+              title: `Assistir ${channel.name}`,
+              text: `Assista ${channel.name} ao vivo`,
+              url: channel.url,
+            });
+          } catch {
+            // User cancelled
+          }
+        } else {
+          alert('Compartilhamento não suportado neste navegador.');
+        }
+        break;
+    }
+    
+    setShowCastModal(false);
+  }, [channel]);
 
   const toggleMirror = useCallback(() => {
     setIsMirrored((prev) => !prev);
@@ -264,6 +393,10 @@ export const VideoPlayer = memo(function VideoPlayer({
           e.preventDefault();
           toggleMute();
           break;
+        case 'c':
+          e.preventDefault();
+          toggleCast();
+          break;
         case 'ArrowUp':
           e.preventDefault();
           setVolume((v) => Math.min(1, v + 0.1));
@@ -283,7 +416,7 @@ export const VideoPlayer = memo(function VideoPlayer({
     // Global keyboard listener
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [resetControlsTimeout, togglePlay, toggleFullscreen, toggleMute]);
+  }, [resetControlsTimeout, togglePlay, toggleFullscreen, toggleMute, toggleCast]);
 
   // Show controls on initial load
   useEffect(() => {
@@ -426,6 +559,17 @@ export const VideoPlayer = memo(function VideoPlayer({
               </button>
 
               <button
+                className={`control-btn cast-btn ${isCasting ? 'active casting' : ''}`}
+                onClick={() => { resetControlsTimeout(); toggleCast(); }}
+                title={isCasting ? 'Transmitindo...' : 'Transmitir (C)'}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6" />
+                  <circle cx="2" cy="20" r="2" fill="currentColor" />
+                </svg>
+              </button>
+
+              <button
                 className={`control-btn ${isTheaterMode ? 'active' : ''}`}
                 onClick={() => { resetControlsTimeout(); onToggleTheater(); }}
                 title="Modo Teatro (T)"
@@ -452,6 +596,54 @@ export const VideoPlayer = memo(function VideoPlayer({
               </button>
             </div>
           </div>
+
+          {/* Modal de Cast */}
+          {showCastModal && (
+            <div className="cast-modal-overlay" onClick={() => setShowCastModal(false)}>
+              <div className="cast-modal" onClick={(e) => e.stopPropagation()}>
+                <h3>Transmitir para dispositivo</h3>
+                <p>Escolha como deseja transmitir "{channel.name}"</p>
+                
+                <div className="cast-options">
+                  <button className="cast-option" onClick={() => handleCastOption('airplay')}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1" />
+                      <polygon points="12 15 17 21 7 21 12 15" />
+                    </svg>
+                    <span>AirPlay</span>
+                    <small>Para Apple TV, Mac, iOS</small>
+                  </button>
+
+                  <button className="cast-option" onClick={() => handleCastOption('copy')}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>Copiar Link</span>
+                    <small>Cole em Smart TV ou outro app</small>
+                  </button>
+
+                  {navigator.share && (
+                    <button className="cast-option" onClick={() => handleCastOption('share')}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                      </svg>
+                      <span>Compartilhar</span>
+                      <small>Enviar para outro dispositivo</small>
+                    </button>
+                  )}
+                </div>
+
+                <button className="cast-modal-close" onClick={() => setShowCastModal(false)}>
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

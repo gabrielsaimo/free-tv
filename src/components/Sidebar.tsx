@@ -1,5 +1,6 @@
 import { useState, useMemo, memo, useEffect, useRef } from 'react';
 import type { Channel } from '../types/channel';
+import { categoryOrder } from '../data/channels';
 import { ChannelCard } from './ChannelCard';
 import './Sidebar.css';
 
@@ -12,9 +13,13 @@ interface SidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   isMobileView?: boolean;
+  onUnlockAdultMode?: () => void;
+  isAdultModeUnlocked?: boolean;
 }
 
 type FilterType = 'all' | 'favorites';
+
+const SECRET_CLICK_COUNT = 15;
 
 export const Sidebar = memo(function Sidebar({
   channels,
@@ -25,11 +30,48 @@ export const Sidebar = memo(function Sidebar({
   isCollapsed,
   onToggleCollapse,
   isMobileView = false,
+  onUnlockAdultMode,
+  isAdultModeUnlocked = false,
 }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
   const channelsListRef = useRef<HTMLDivElement>(null);
   const activeChannelRef = useRef<HTMLDivElement>(null);
+  const [secretClickCount, setSecretClickCount] = useState(0);
+  const secretClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Handler para cliques secretos no logo
+  const handleLogoClick = () => {
+    if (isAdultModeUnlocked) return; // Já desbloqueado
+
+    // Reset timeout para resetar contagem após 3 segundos de inatividade
+    if (secretClickTimeoutRef.current) {
+      clearTimeout(secretClickTimeoutRef.current);
+    }
+    secretClickTimeoutRef.current = setTimeout(() => {
+      setSecretClickCount(0);
+    }, 3000);
+
+    const newCount = secretClickCount + 1;
+    setSecretClickCount(newCount);
+
+    if (newCount >= SECRET_CLICK_COUNT && onUnlockAdultMode) {
+      onUnlockAdultMode();
+      setSecretClickCount(0);
+      if (secretClickTimeoutRef.current) {
+        clearTimeout(secretClickTimeoutRef.current);
+      }
+    }
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (secretClickTimeoutRef.current) {
+        clearTimeout(secretClickTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Scroll para o canal ativo quando ele mudar
   useEffect(() => {
@@ -63,6 +105,30 @@ export const Sidebar = memo(function Sidebar({
     return result;
   }, [channels, favorites, filter, searchQuery]);
 
+  // Agrupa canais por categoria mantendo a ordem definida
+  const groupedChannels = useMemo(() => {
+    const groups: Record<string, Channel[]> = {};
+    
+    // Inicializa grupos na ordem correta
+    categoryOrder.forEach(cat => {
+      groups[cat] = [];
+    });
+    
+    // Distribui canais nos grupos
+    filteredChannels.forEach(channel => {
+      const category = channel.category || 'Outros';
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(channel);
+    });
+    
+    // Remove categorias vazias e retorna como array
+    return categoryOrder
+      .filter(cat => groups[cat] && groups[cat].length > 0)
+      .map(cat => ({ category: cat, channels: groups[cat] }));
+  }, [filteredChannels]);
+
   return (
     <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileView ? 'mobile-view' : ''}`}>
       <div className="sidebar-header">
@@ -71,7 +137,16 @@ export const Sidebar = memo(function Sidebar({
             <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
             <path d="M10 9l5 3-5 3V9z" fill="currentColor" />
           </svg>
-          {!isCollapsed && <span className="logo-text">Saimo TV</span>}
+          {!isCollapsed && (
+            <span 
+              className={`logo-text ${!isAdultModeUnlocked ? 'clickable' : ''}`}
+              onClick={handleLogoClick}
+              style={{ cursor: !isAdultModeUnlocked ? 'pointer' : 'default', userSelect: 'none' }}
+            >
+              Saimo TV
+              {isAdultModeUnlocked && <span className="adult-badge">🔓</span>}
+            </span>
+          )}
         </div>
         <button className="collapse-btn" onClick={onToggleCollapse} aria-label="Toggle sidebar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -135,25 +210,37 @@ export const Sidebar = memo(function Sidebar({
             <p>Nenhum canal encontrado</p>
           </div>
         ) : (
-          filteredChannels.map((channel) => (
-            <div 
-              key={channel.id} 
-              ref={channel.id === activeChannelId ? activeChannelRef : null}
-            >
-              <ChannelCard
-                id={channel.id}
-                name={isCollapsed ? channel.name.slice(0, 2) : channel.name}
-                category={isCollapsed ? undefined : channel.category}
-                logo={channel.logo}
-                channelNumber={isCollapsed ? undefined : channel.channelNumber}
-                isActive={channel.id === activeChannelId}
-                isFavorite={favorites.includes(channel.id)}
-                onSelect={() => onSelectChannel(channel)}
-                onToggleFavorite={(e) => {
-                  e.stopPropagation();
-                  onToggleFavorite(channel.id);
-                }}
-              />
+          groupedChannels.map(({ category, channels: categoryChannels }) => (
+            <div key={category} className="category-group">
+              {!isCollapsed && (
+                <div className="category-header">
+                  <span className="category-name">{category}</span>
+                  <span className="category-count">{categoryChannels.length}</span>
+                </div>
+              )}
+              <div className="category-channels">
+                {categoryChannels.map((channel) => (
+                  <div 
+                    key={channel.id} 
+                    ref={channel.id === activeChannelId ? activeChannelRef : null}
+                  >
+                    <ChannelCard
+                      id={channel.id}
+                      name={isCollapsed ? channel.name.slice(0, 2) : channel.name}
+                      category={isCollapsed ? undefined : undefined}
+                      logo={channel.logo}
+                      channelNumber={isCollapsed ? undefined : channel.channelNumber}
+                      isActive={channel.id === activeChannelId}
+                      isFavorite={favorites.includes(channel.id)}
+                      onSelect={() => onSelectChannel(channel)}
+                      onToggleFavorite={(e) => {
+                        e.stopPropagation();
+                        onToggleFavorite(channel.id);
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           ))
         )}

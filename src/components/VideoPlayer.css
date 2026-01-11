@@ -237,6 +237,22 @@
   border-color: rgba(139, 92, 246, 0.6);
 }
 
+/* Cast button styles */
+.control-btn.cast-btn.casting {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.5), rgba(16, 185, 129, 0.5));
+  border-color: rgba(34, 197, 94, 0.6);
+  animation: cast-pulse 2s ease-in-out infinite;
+}
+
+@keyframes cast-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px 5px rgba(34, 197, 94, 0.3);
+  }
+}
+
 .control-btn svg {
   width: 22px;
   height: 22px;
@@ -451,5 +467,155 @@
   .retry-btn {
     padding: 10px 20px;
     font-size: 13px;
+  }
+}
+
+/* Cast Modal */
+.cast-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.cast-modal {
+  background: linear-gradient(145deg, #1a1a2e, #16162a);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(139, 92, 246, 0.1);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cast-modal h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cast-modal > p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: #888;
+}
+
+.cast-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cast-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.cast-option:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateX(4px);
+}
+
+.cast-option svg {
+  width: 32px;
+  height: 32px;
+  color: #8b5cf6;
+  flex-shrink: 0;
+}
+
+.cast-option span {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.cast-option small {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.cast-modal-close {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: #888;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cast-modal-close:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+/* Responsive cast modal */
+@media (max-width: 480px) {
+  .cast-modal {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .cast-modal h3 {
+    font-size: 18px;
+  }
+
+  .cast-option {
+    padding: 14px;
+  }
+
+  .cast-option svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .cast-option span {
+    font-size: 15px;
   }
 }
