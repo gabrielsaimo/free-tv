@@ -279,6 +279,30 @@
     transform: translateX(-100%);
   }
 
+  /* Mobile View - Full width sidebar in tab */
+  .sidebar.mobile-view {
+    position: relative;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    transform: none;
+    border-right: none;
+  }
+
+  .sidebar.mobile-view .sidebar-header {
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .sidebar.mobile-view .collapse-btn {
+    display: none;
+  }
+
+  .sidebar.mobile-view .channels-list {
+    padding: 12px;
+    gap: 10px;
+  }
+
   .sidebar-header {
     padding: 16px;
   }
@@ -312,6 +336,27 @@
 
 /* Small Mobile */
 @media (max-width: 480px) {
+  .sidebar.mobile-view {
+    width: 100%;
+  }
+
+  .sidebar.mobile-view .sidebar-header {
+    padding: 14px 12px;
+  }
+
+  .sidebar.mobile-view .search-container {
+    padding: 10px 12px;
+  }
+
+  .sidebar.mobile-view .filter-tabs {
+    padding: 0 12px 10px;
+  }
+
+  .sidebar.mobile-view .channels-list {
+    padding: 10px;
+    gap: 8px;
+  }
+
   .sidebar {
     max-width: 100%;
     width: 85%;

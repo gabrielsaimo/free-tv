@@ -15,6 +15,8 @@ interface ToastState {
   id: number;
 }
 
+type MobileTab = 'player' | 'channels';
+
 function App() {
   const [favorites, setFavorites] = useLocalStorage<string[]>('tv-favorites', []);
   const [lastChannelId, setLastChannelId] = useLocalStorage<string | null>('tv-last-channel', null);
@@ -24,6 +26,7 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
+  const [mobileTab, setMobileTab] = useState<MobileTab>('player');
 
   // Load last channel on mount
   useEffect(() => {
@@ -44,6 +47,7 @@ function App() {
     setSelectedChannel(channel);
     setLastChannelId(channel.id);
     setIsMobileMenuOpen(false);
+    setMobileTab('player'); // Volta para o player ao selecionar canal
     showToast(`Assistindo: ${channel.name}`, 'info');
   }, [setLastChannelId, showToast]);
 
@@ -103,22 +107,32 @@ function App() {
 
   return (
     <div className={`app ${isTheaterMode ? 'theater-mode' : ''}`}>
-      {/* Mobile menu button */}
-      <button
-        className="mobile-menu-btn"
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        aria-label="Menu"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          {isMobileMenuOpen ? (
-            <path d="M18 6L6 18M6 6l12 12" />
-          ) : (
+      {/* Mobile Tab Navigation */}
+      <nav className="mobile-tabs">
+        <button
+          className={`mobile-tab ${mobileTab === 'player' ? 'active' : ''}`}
+          onClick={() => setMobileTab('player')}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+          </svg>
+          <span>Player</span>
+        </button>
+        <button
+          className={`mobile-tab ${mobileTab === 'channels' ? 'active' : ''}`}
+          onClick={() => setMobileTab('channels')}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 6h16M4 12h16M4 18h16" />
-          )}
-        </svg>
-      </button>
+          </svg>
+          <span>Canais</span>
+          <span className="tab-badge">{channels.length}</span>
+        </button>
+      </nav>
 
-      <div className={`sidebar-wrapper ${isMobileMenuOpen ? 'open' : ''}`}>
+      {/* Desktop Sidebar */}
+      <div className={`sidebar-wrapper desktop-only ${isMobileMenuOpen ? 'open' : ''}`}>
         <Sidebar
           channels={channels}
           activeChannelId={selectedChannel?.id || null}
@@ -138,7 +152,32 @@ function App() {
         />
       )}
 
-      <main className="main-content">
+      {/* Mobile Content */}
+      <div className="mobile-content">
+        <div className={`mobile-view ${mobileTab === 'player' ? 'active' : ''}`}>
+          <VideoPlayer
+            channel={selectedChannel}
+            isTheaterMode={isTheaterMode}
+            onToggleTheater={handleToggleTheater}
+            onOpenGuide={() => setIsGuideOpen(true)}
+          />
+        </div>
+        <div className={`mobile-view ${mobileTab === 'channels' ? 'active' : ''}`}>
+          <Sidebar
+            channels={channels}
+            activeChannelId={selectedChannel?.id || null}
+            favorites={favorites}
+            onSelectChannel={handleSelectChannel}
+            onToggleFavorite={handleToggleFavorite}
+            isCollapsed={false}
+            onToggleCollapse={() => {}}
+            isMobileView={true}
+          />
+        </div>
+      </div>
+
+      {/* Desktop Main Content */}
+      <main className="main-content desktop-only">
         <VideoPlayer
           channel={selectedChannel}
           isTheaterMode={isTheaterMode}

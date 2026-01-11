@@ -11,6 +11,7 @@ interface SidebarProps {
   onToggleFavorite: (channelId: string) => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  isMobileView?: boolean;
 }
 
 type FilterType = 'all' | 'favorites';
@@ -23,6 +24,7 @@ export const Sidebar = memo(function Sidebar({
   onToggleFavorite,
   isCollapsed,
   onToggleCollapse,
+  isMobileView = false,
 }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
@@ -62,7 +64,7 @@ export const Sidebar = memo(function Sidebar({
   }, [channels, favorites, filter, searchQuery]);
 
   return (
-    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileView ? 'mobile-view' : ''}`}>
       <div className="sidebar-header">
         <div className="logo">
           <svg viewBox="0 0 24 24" fill="none" className="logo-icon">

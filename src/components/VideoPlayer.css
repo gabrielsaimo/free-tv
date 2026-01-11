@@ -338,7 +338,8 @@
 /* Responsive - Mobile */
 @media (max-width: 768px) {
   .video-player-container {
-    min-height: 56.25vw; /* 16:9 aspect ratio */
+    min-height: 0;
+    flex: 1;
   }
 
   .video-controls {
@@ -365,6 +366,10 @@
     width: 60px;
   }
 
+  .no-channel {
+    min-height: 50vh;
+  }
+
   .no-channel-content svg {
     width: 80px;
     height: 80px;
@@ -382,7 +387,7 @@
 /* Responsive - Small Mobile */
 @media (max-width: 480px) {
   .video-player-container {
-    min-height: 60vw;
+    min-height: 0;
   }
 
   .video-controls {
