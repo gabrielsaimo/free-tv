@@ -20,6 +20,9 @@ const channelToMeuGuiaCode: Record<string, string> = {
   'telecine-action': 'TC2',
   'telecine-premium': 'TC1',
   'telecine-pipoca': 'TC4',
+  'telecine-cult': 'TC5',
+  'telecine-fun': 'TC6',
+  'telecine-touch': 'TC3',
   
   // HBO
   'hbo': 'HBO',
@@ -73,9 +76,13 @@ const channelToMeuGuiaCode: Record<string, string> = {
   // Documentários
   'discovery': 'DIS',
   'discovery-turbo': 'DTU',
+  'discovery-world': 'DIW',
+  'discovery-science': 'DSC',
+  'discovery-hh': 'HEA',
   'animal-planet': 'APL',
   'history': 'HIS',
   'history2': 'H2H',
+  'tlc': 'TRV',
   
   // Séries
   'warner': 'WBT',
@@ -87,6 +94,7 @@ const channelToMeuGuiaCode: Record<string, string> = {
   'ae': 'MDO',
   
   // Filmes
+  'amc': 'MGM',
   'tcm': 'TCM',
   'space': 'SPA',
   'cinemax': 'MNX',
