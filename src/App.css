@@ -69,8 +69,19 @@
   }
 }
 
-/* Responsive */
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+  .main-content {
+    padding-top: 0;
+  }
+}
+
+/* Responsive - Mobile */
 @media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
   .mobile-menu-btn {
     display: flex;
   }
@@ -90,5 +101,26 @@
 
   .sidebar-wrapper.open {
     transform: translateX(0);
+  }
+
+  .main-content {
+    min-height: 100vh;
+    padding-top: 0;
+  }
+}
+
+/* Responsive - Small Mobile */
+@media (max-width: 480px) {
+  .mobile-menu-btn {
+    top: 10px;
+    left: 10px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+  }
+
+  .mobile-menu-btn svg {
+    width: 20px;
+    height: 20px;
   }
 }

@@ -93,3 +93,62 @@ ul,
 ol {
   list-style: none;
 }
+
+/* Touch device improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Disable hover effects on touch devices */
+  .channel-card:hover {
+    transform: none;
+  }
+
+  /* Better scrolling on mobile */
+  .channels-list,
+  .programs-grid,
+  .upcoming-programs {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Safe area for notched devices */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Prevent text selection on UI elements */
+@media (max-width: 768px) {
+  button,
+  .channel-card,
+  .filter-tab,
+  .control-btn {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .video-player-container {
+    min-height: 100vh;
+  }
+
+  .video-controls {
+    padding: 8px 12px;
+  }
+
+  .control-btn {
+    width: 36px;
+    height: 36px;
+  }
+}

@@ -278,4 +278,84 @@
   .sidebar.collapsed {
     transform: translateX(-100%);
   }
+
+  .sidebar-header {
+    padding: 16px;
+  }
+
+  .logo-text {
+    font-size: 18px;
+  }
+
+  .collapse-btn {
+    display: none;
+  }
+
+  .search-container {
+    padding: 12px 16px;
+  }
+
+  .filter-tabs {
+    padding: 0 16px 12px;
+    gap: 6px;
+  }
+
+  .filter-tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .channels-list {
+    padding: 8px;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .sidebar {
+    max-width: 100%;
+    width: 85%;
+  }
+
+  .sidebar-header {
+    padding: 14px 12px;
+  }
+
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .logo-text {
+    font-size: 16px;
+  }
+
+  .search-container {
+    padding: 10px 12px;
+  }
+
+  .search-input {
+    padding: 10px 36px;
+    font-size: 13px;
+  }
+
+  .search-icon {
+    left: 24px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .filter-tabs {
+    padding: 0 12px 10px;
+  }
+
+  .filter-tab {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .filter-tab .count {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
 }

@@ -442,7 +442,20 @@
   background: rgba(139, 92, 246, 0.5);
 }
 
-/* Responsive */
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+  .program-guide {
+    width: 98vw;
+    height: 90vh;
+  }
+
+  .channel-column-header,
+  .channels-column {
+    width: 160px;
+  }
+}
+
+/* Responsive - Mobile */
 @media (max-width: 768px) {
   .program-guide {
     width: 100vw;
@@ -453,14 +466,202 @@
   .guide-header {
     flex-wrap: wrap;
     gap: 12px;
+    padding: 16px;
+  }
+
+  .guide-title h2 {
+    font-size: 16px;
+  }
+
+  .guide-title svg {
+    width: 22px;
+    height: 22px;
   }
 
   .channel-column-header,
   .channels-column {
-    width: 120px;
+    width: 100px;
+  }
+
+  .guide-channel {
+    padding: 6px 8px;
+    height: 50px;
+  }
+
+  .channel-programs {
+    height: 50px;
   }
 
   .guide-channel-name {
+    font-size: 10px;
+  }
+
+  .guide-channel-number {
+    font-size: 9px;
+    padding: 2px 4px;
+    min-width: 24px;
+  }
+
+  .program-block {
+    height: 42px;
+    padding: 6px 8px;
+  }
+
+  .program-block-title {
+    font-size: 11px;
+  }
+
+  .program-block-time {
+    font-size: 9px;
+  }
+
+  .time-slot {
+    width: 150px;
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .current-date {
+    font-size: 12px;
+    min-width: 150px;
+  }
+
+  .program-tooltip {
+    max-width: 90vw;
+    padding: 14px 16px;
+    bottom: 10px;
+  }
+
+  .program-tooltip h4 {
+    font-size: 14px;
+  }
+
+  .tooltip-time {
+    font-size: 12px;
+  }
+
+  .tooltip-description {
+    font-size: 12px;
+  }
+}
+
+/* Responsive - Small Mobile */
+@media (max-width: 480px) {
+  .guide-header {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .guide-title {
+    gap: 8px;
+  }
+
+  .guide-title h2 {
+    font-size: 14px;
+  }
+
+  .guide-title svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .guide-date-nav {
+    gap: 8px;
+  }
+
+  .date-nav-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .date-nav-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .current-date {
+    font-size: 11px;
+    min-width: 120px;
+  }
+
+  .guide-close-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .guide-close-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .channel-column-header,
+  .channels-column {
+    width: 80px;
+  }
+
+  .channel-column-header {
+    padding: 10px 8px;
+    font-size: 10px;
+  }
+
+  .guide-channel {
+    padding: 4px 6px;
+    height: 45px;
+    gap: 4px;
+  }
+
+  .channel-programs {
+    height: 45px;
+  }
+
+  .guide-channel-logo {
+    width: 20px;
+    height: 20px;
+  }
+
+  .guide-channel-number {
+    display: none;
+  }
+
+  .guide-channel-name {
+    font-size: 9px;
+  }
+
+  .program-block {
+    height: 37px;
+    padding: 4px 6px;
+    border-radius: 6px;
+  }
+
+  .program-block-title {
+    font-size: 10px;
+  }
+
+  .program-block-time {
+    font-size: 8px;
+  }
+
+  .time-slot {
+    width: 120px;
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .program-tooltip {
+    padding: 12px 14px;
+  }
+
+  .program-tooltip h4 {
+    font-size: 13px;
+  }
+
+  .tooltip-category {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .tooltip-time,
+  .tooltip-description {
     font-size: 11px;
   }
 }
