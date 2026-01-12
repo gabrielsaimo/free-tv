@@ -113,11 +113,22 @@ function App() {
     handleSelectChannel(channels[prevIndex]);
   }, [selectedChannel, handleSelectChannel]);
 
+  // Handler para trocar de canal por número
+  const handleChannelNumber = useCallback((channelNumber: number) => {
+    const channel = channels.find((ch) => ch.channelNumber === channelNumber);
+    if (channel) {
+      handleSelectChannel(channel);
+    } else {
+      showToast(`Canal ${channelNumber} não encontrado`, 'error');
+    }
+  }, [channels, handleSelectChannel, showToast]);
+
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onTheater: handleToggleTheater,
     onNextChannel: handleNextChannel,
     onPrevChannel: handlePrevChannel,
+    onChannelNumber: handleChannelNumber,
   });
 
   // Atalho G para abrir guia
