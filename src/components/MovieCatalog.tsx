@@ -782,9 +782,12 @@ export function MovieCatalog({ onSelectMovie, isAdultUnlocked = false }: MovieCa
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<{ series: GroupedSeries[]; standalone: Movie[] } | null>(null);
   const [categoryTypeInfo, setCategoryTypeInfo] = useState<Map<string, { hasMovies: boolean; hasSeries: boolean }>>(new Map());
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const lastScrollTop = useRef(0);
   
   // Categorias disponíveis filtradas por modo adulto
   const availableCategoryIndex = useMemo(() => {
@@ -1015,6 +1018,31 @@ export function MovieCatalog({ onSelectMovie, isAdultUnlocked = false }: MovieCa
     setVisibleCategories(CATEGORIES_PER_LOAD);
   }, [selectedCategory, contentFilter, debouncedSearch]);
 
+  // Detecta scroll para colapsar/expandir header
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+
+    const handleScroll = () => {
+      const scrollTop = content.scrollTop;
+      const delta = scrollTop - lastScrollTop.current;
+      
+      // Colapsa ao rolar para baixo mais de 50px
+      if (delta > 10 && scrollTop > 100) {
+        setIsHeaderCollapsed(true);
+      }
+      // Expande ao rolar para cima
+      if (delta < -10 || scrollTop < 50) {
+        setIsHeaderCollapsed(false);
+      }
+      
+      lastScrollTop.current = scrollTop;
+    };
+
+    content.addEventListener('scroll', handleScroll, { passive: true });
+    return () => content.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const isShowingResults = debouncedSearch.trim() || selectedCategory;
 
   // Contagens para stats usando o índice de categorias
@@ -1036,35 +1064,76 @@ export function MovieCatalog({ onSelectMovie, isAdultUnlocked = false }: MovieCa
       )}
 
       {/* Header do Catálogo */}
-      <header className={`catalog-header ${isSearchFocused || searchQuery ? 'search-active' : ''}`}>
+      <header className={`catalog-header ${isSearchFocused || searchQuery ? 'search-active' : ''} ${isHeaderCollapsed ? 'collapsed' : ''}`}>
         <div className="header-content">
+          {/* Filtro de tipo - Compacto */}
           <nav className="content-nav">
             <button
               className={`nav-btn ${contentFilter === 'all' ? 'active' : ''}`}
               onClick={() => setContentFilter('all')}
             >
-              Todos
+              <span className="nav-label">Todos</span>
             </button>
             <button
               className={`nav-btn ${contentFilter === 'movies' ? 'active' : ''}`}
               onClick={() => setContentFilter('movies')}
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/>
               </svg>
-              Filmes
+              <span className="nav-label">Filmes</span>
             </button>
             <button
               className={`nav-btn ${contentFilter === 'series' ? 'active' : ''}`}
               onClick={() => setContentFilter('series')}
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/>
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.89 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/>
               </svg>
-              Séries
+              <span className="nav-label">Séries</span>
             </button>
           </nav>
 
+          {/* Dropdown de Categoria - Mobile */}
+          <div className="category-dropdown-container">
+            <button 
+              className={`category-dropdown-btn ${selectedCategory ? 'has-selection' : ''}`}
+              onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M4 6h16v2H4zm4 5h12v2H8zm6 5h6v2h-6z"/>
+              </svg>
+              <span>{selectedCategory || 'Categorias'}</span>
+              <svg className={`dropdown-arrow ${showCategoryDropdown ? 'open' : ''}`} viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M7 10l5 5 5-5z"/>
+              </svg>
+            </button>
+            {showCategoryDropdown && (
+              <div className="category-dropdown-menu">
+                <button
+                  className={`dropdown-item ${selectedCategory === null ? 'active' : ''}`}
+                  onClick={() => { handleCategoryClick(null); setShowCategoryDropdown(false); }}
+                >
+                  Todas as Categorias
+                </button>
+                {filteredCategoryIndex.map(cat => (
+                  <button
+                    key={cat.name}
+                    className={`dropdown-item ${selectedCategory === cat.name ? 'active' : ''}`}
+                    onClick={() => { handleCategoryClick(cat.name); setShowCategoryDropdown(false); }}
+                  >
+                    {getCategoryType(cat.name) === 'movies' && '🎬 '}
+                    {getCategoryType(cat.name) === 'series' && '📺 '}
+                    {getCategoryType(cat.name) === 'mixed' && '🎭 '}
+                    {cat.name}
+                    <span className="dropdown-count">{cat.count}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Busca */}
           <div className={`search-container ${isSearchFocused || searchQuery ? 'expanded' : ''}`}>
             <div className="search-box">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1073,7 +1142,7 @@ export function MovieCatalog({ onSelectMovie, isAdultUnlocked = false }: MovieCa
               </svg>
               <input
                 type="text"
-                placeholder="Buscar títulos..."
+                placeholder="Buscar..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
@@ -1090,7 +1159,7 @@ export function MovieCatalog({ onSelectMovie, isAdultUnlocked = false }: MovieCa
           </div>
         </div>
 
-        {/* Categorias */}
+        {/* Categorias - Desktop (scroll horizontal) */}
         <div className="categories-bar">
           <div className="categories-scroll">
             <button
