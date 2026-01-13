@@ -166,6 +166,16 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
     };
   }, [movie]);
 
+  // Calcula próximo episódio - DEVE vir antes do useEffect que o usa
+  const nextEpisode = useMemo(() => {
+    if (!seriesInfo || !movie) return null;
+    
+    const currentIndex = seriesInfo.episodes.findIndex(ep => ep.id === movie.id);
+    if (currentIndex === -1 || currentIndex >= seriesInfo.episodes.length - 1) return null;
+    
+    return seriesInfo.episodes[currentIndex + 1];
+  }, [seriesInfo, movie]);
+
   // Atualizar tempo/buffer
   useEffect(() => {
     const video = videoRef.current;
@@ -209,16 +219,6 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
       video.removeEventListener('ended', handleEnded);
     };
   }, [movie, nextEpisode]);
-
-  // Calcula próximo episódio
-  const nextEpisode = useMemo(() => {
-    if (!seriesInfo || !movie) return null;
-    
-    const currentIndex = seriesInfo.episodes.findIndex(ep => ep.id === movie.id);
-    if (currentIndex === -1 || currentIndex >= seriesInfo.episodes.length - 1) return null;
-    
-    return seriesInfo.episodes[currentIndex + 1];
-  }, [seriesInfo, movie]);
 
   // Mostra botão de próximo episódio quando faltam 30 segundos
   useEffect(() => {
