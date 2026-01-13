@@ -107,7 +107,13 @@ export const Sidebar = memo(function Sidebar({
             </span>
           )}
         </div>
-        <button className="collapse-btn" onClick={onToggleCollapse} aria-label="Toggle sidebar">
+        <button 
+          className="collapse-btn" 
+          onClick={onToggleCollapse} 
+          aria-label="Toggle sidebar"
+          data-focusable="true"
+          data-focus-key="sidebar-collapse"
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             {isCollapsed ? (
               <path d="M9 18l6-6-6-6" />
@@ -131,9 +137,15 @@ export const Sidebar = memo(function Sidebar({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
+              data-focusable="true"
+              data-focus-key="search-input"
             />
             {searchQuery && (
-              <button className="clear-search" onClick={() => setSearchQuery('')}>
+              <button 
+                className="clear-search" 
+                onClick={() => setSearchQuery('')}
+                data-focusable="true"
+              >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
@@ -145,6 +157,8 @@ export const Sidebar = memo(function Sidebar({
             <button
               className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
               onClick={() => setFilter('all')}
+              data-focusable="true"
+              data-focus-key="filter-all"
             >
               Todos
               <span className="count">{channels.length}</span>
@@ -152,6 +166,8 @@ export const Sidebar = memo(function Sidebar({
             <button
               className={`filter-tab ${filter === 'favorites' ? 'active' : ''}`}
               onClick={() => setFilter('favorites')}
+              data-focusable="true"
+              data-focus-key="filter-favorites"
             >
               Favoritos
               <span className="count">{favorites.length}</span>

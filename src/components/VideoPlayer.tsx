@@ -630,7 +630,13 @@ export const VideoPlayer = memo(function VideoPlayer({
           <div className="video-controls" onMouseMove={resetControlsTimeout}>
             <div className="controls-left">
               <div className="volume-control">
-                <button className="control-btn" onClick={() => { resetControlsTimeout(); toggleMute(); }} title={isMuted ? 'Ativar som (M)' : 'Mudo (M)'}>
+                <button 
+                  className="control-btn" 
+                  onClick={() => { resetControlsTimeout(); toggleMute(); }} 
+                  title={isMuted ? 'Ativar som (M)' : 'Mudo (M)'}
+                  data-focusable="true"
+                  data-focus-key="btn-mute"
+                >
                   {isMuted || volume === 0 ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" />
@@ -650,6 +656,8 @@ export const VideoPlayer = memo(function VideoPlayer({
                   onChange={(e) => { resetControlsTimeout(); handleVolumeChange(e); }}
                   className="volume-slider"
                   title={`Volume: ${Math.round(volume * 100)}%`}
+                  data-focusable="true"
+                  data-focus-key="volume-slider"
                 />
               </div>
 
@@ -669,6 +677,8 @@ export const VideoPlayer = memo(function VideoPlayer({
                 className={`control-btn ${isMirrored ? 'active' : ''}`}
                 onClick={() => { resetControlsTimeout(); toggleMirror(); }}
                 title="Espelhar vídeo (R)"
+                data-focusable="true"
+                data-focus-key="btn-mirror"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M8 3H5a2 2 0 00-2 2v14a2 2 0 002 2h3M16 3h3a2 2 0 012 2v14a2 2 0 01-2 2h-3M12 3v18" />
@@ -680,6 +690,8 @@ export const VideoPlayer = memo(function VideoPlayer({
                 className={`control-btn ${isPiP ? 'active' : ''}`}
                 onClick={() => { resetControlsTimeout(); togglePiP(); }}
                 title="Picture in Picture (P)"
+                data-focusable="true"
+                data-focus-key="btn-pip"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -691,6 +703,8 @@ export const VideoPlayer = memo(function VideoPlayer({
                 className={`control-btn cast-btn ${castState.isConnected ? 'active casting' : ''}`}
                 onClick={() => { resetControlsTimeout(); toggleCast(); }}
                 title={castState.isConnected ? `Transmitindo para ${castState.deviceName}` : 'Transmitir (C)'}
+                data-focusable="true"
+                data-focus-key="btn-cast"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6" />
@@ -702,6 +716,8 @@ export const VideoPlayer = memo(function VideoPlayer({
                 className={`control-btn ${isTheaterMode ? 'active' : ''}`}
                 onClick={() => { resetControlsTimeout(); onToggleTheater(); }}
                 title="Modo Teatro (T)"
+                data-focusable="true"
+                data-focus-key="btn-theater"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="2" y="6" width="20" height="12" rx="2" />
@@ -712,6 +728,8 @@ export const VideoPlayer = memo(function VideoPlayer({
                 className={`control-btn ${isFullscreen ? 'active' : ''}`}
                 onClick={() => { resetControlsTimeout(); toggleFullscreen(); }}
                 title="Tela cheia (F)"
+                data-focusable="true"
+                data-focus-key="btn-fullscreen"
               >
                 {isFullscreen ? (
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

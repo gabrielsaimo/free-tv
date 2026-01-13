@@ -32,6 +32,7 @@ export const ProgramGuide = memo(function ProgramGuide({
   const [hoveredProgram, setHoveredProgram] = useState<Program | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [, forceUpdate] = useState(0);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   
   // Refs para sincronização de scroll
   const timelineHeaderRef = useRef<HTMLDivElement>(null);
@@ -48,9 +49,29 @@ export const ProgramGuide = memo(function ProgramGuide({
         forceUpdate(n => n + 1);
       });
       
+      // Auto-focus no botão de fechar
+      setTimeout(() => {
+        closeButtonRef.current?.focus();
+      }, 100);
+      
       return () => unsubscribe();
     }
   }, [isOpen]);
+
+  // Handler para fechar com Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   // Atualiza horário a cada minuto
   useEffect(() => {
@@ -170,6 +191,8 @@ export const ProgramGuide = memo(function ProgramGuide({
                 newDate.setDate(newDate.getDate() - 1);
                 setSelectedDate(newDate);
               }}
+              data-focusable="true"
+              data-focus-key="guide-date-prev"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M15 18l-6-6 6-6" />
@@ -191,6 +214,8 @@ export const ProgramGuide = memo(function ProgramGuide({
                 newDate.setDate(newDate.getDate() + 1);
                 setSelectedDate(newDate);
               }}
+              data-focusable="true"
+              data-focus-key="guide-date-next"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 18l6-6-6-6" />
@@ -198,7 +223,13 @@ export const ProgramGuide = memo(function ProgramGuide({
             </button>
           </div>
 
-          <button className="guide-close-btn" onClick={onClose}>
+          <button 
+            ref={closeButtonRef}
+            className="guide-close-btn" 
+            onClick={onClose}
+            data-focusable="true"
+            data-focus-key="guide-close"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
@@ -236,6 +267,17 @@ export const ProgramGuide = memo(function ProgramGuide({
                 onClick={() => {
                   onSelectChannel(channel);
                   onClose();
+                }}
+                role="button"
+                tabIndex={0}
+                data-focusable="true"
+                data-focus-key={`guide-channel-${channel.id}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelectChannel(channel);
+                    onClose();
+                  }
                 }}
               >
                 <span className="guide-channel-number">

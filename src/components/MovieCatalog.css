@@ -2502,3 +2502,109 @@
     font-size: 0.7rem;
   }
 }
+
+/* ========================================
+   D-PAD FOCUS STYLES - MÁXIMA VISIBILIDADE
+   ======================================== */
+
+/* Estado focado via D-pad - SUPER BRILHANTE */
+.movie-card.dpad-card-focused,
+.movie-card.dpad-focused,
+.movie-card:focus,
+.movie-card[data-focused="true"] {
+  transform: scale(1.15) translateY(-15px) !important;
+  z-index: 200 !important;
+  filter: brightness(1.1) !important;
+}
+
+.movie-card.dpad-card-focused .movie-poster,
+.movie-card.dpad-focused .movie-poster,
+.movie-card:focus .movie-poster,
+.movie-card[data-focused="true"] .movie-poster {
+  box-shadow: 
+    0 0 0 5px #a855f7,
+    0 0 0 10px #06b6d4,
+    0 0 60px rgba(168, 85, 247, 1),
+    0 0 100px rgba(6, 182, 212, 0.6),
+    0 25px 50px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 12px !important;
+}
+
+.movie-card.dpad-card-focused .movie-overlay,
+.movie-card.dpad-focused .movie-overlay,
+.movie-card:focus .movie-overlay,
+.movie-card[data-focused="true"] .movie-overlay {
+  opacity: 1 !important;
+}
+
+.movie-card.dpad-card-focused .movie-info,
+.movie-card.dpad-focused .movie-info,
+.movie-card:focus .movie-info,
+.movie-card[data-focused="true"] .movie-info {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(6, 182, 212, 0.1)) !important;
+  padding: 10px !important;
+  border-radius: 0 0 12px 12px !important;
+}
+
+.movie-card.dpad-card-focused .movie-title,
+.movie-card.dpad-focused .movie-title,
+.movie-card:focus .movie-title,
+.movie-card[data-focused="true"] .movie-title {
+  color: white !important;
+  text-shadow: 
+    0 0 15px rgba(168, 85, 247, 1),
+    0 0 30px rgba(6, 182, 212, 0.8) !important;
+  font-weight: 700 !important;
+}
+
+.movie-card.dpad-card-focused .movie-subtitle,
+.movie-card.dpad-focused .movie-subtitle,
+.movie-card:focus .movie-subtitle,
+.movie-card[data-focused="true"] .movie-subtitle {
+  color: #06b6d4 !important;
+  font-weight: 500 !important;
+}
+
+/* Indicador de foco visual extra - ANIMADO */
+.dpad-focus-indicator {
+  position: absolute;
+  inset: -8px;
+  border-radius: 16px;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.dpad-focus-indicator .focus-ring {
+  position: absolute;
+  inset: 0;
+  border: 5px solid #a855f7;
+  border-radius: inherit;
+  box-shadow: 
+    0 0 0 3px #06b6d4,
+    0 0 40px rgba(168, 85, 247, 1),
+    0 0 80px rgba(6, 182, 212, 0.7),
+    inset 0 0 30px rgba(168, 85, 247, 0.4);
+  animation: dpadFocusPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dpadFocusPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 3px #06b6d4,
+      0 0 40px rgba(168, 85, 247, 1),
+      0 0 80px rgba(6, 182, 212, 0.7),
+      inset 0 0 30px rgba(168, 85, 247, 0.4);
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 4px #06b6d4,
+      0 0 60px rgba(168, 85, 247, 1),
+      0 0 120px rgba(6, 182, 212, 0.9),
+      inset 0 0 50px rgba(168, 85, 247, 0.6);
+    opacity: 0.95;
+    transform: scale(1.02);
+  }
+}

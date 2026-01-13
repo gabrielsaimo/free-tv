@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useDpad } from '../contexts/DpadContext';
 import './HomeSelector.css';
 
 interface HomeSelectorProps {
@@ -8,12 +9,38 @@ interface HomeSelectorProps {
 export function HomeSelector({ onSelect }: HomeSelectorProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<'tv' | 'movies' | null>(null);
+  const { focusFirst, isUsingDpad } = useDpad();
+  
+  const tvCardRef = useRef<HTMLButtonElement>(null);
+  const moviesCardRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     // Trigger entrada com animação
     const timer = setTimeout(() => setIsLoaded(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Auto-foca no primeiro card quando usando D-pad
+  useEffect(() => {
+    if (isLoaded && isUsingDpad) {
+      setTimeout(() => focusFirst(), 200);
+    }
+  }, [isLoaded, isUsingDpad, focusFirst]);
+
+  // Atualiza o estado visual quando focado via D-pad
+  const handleTvFocus = useCallback(() => {
+    setHoveredCard('tv');
+  }, []);
+
+  const handleMoviesFocus = useCallback(() => {
+    setHoveredCard('movies');
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    if (!isUsingDpad) {
+      setHoveredCard(null);
+    }
+  }, [isUsingDpad]);
 
   return (
     <div className={`home-selector ${isLoaded ? 'loaded' : ''}`}>
@@ -64,10 +91,15 @@ export function HomeSelector({ onSelect }: HomeSelectorProps) {
         <div className="mode-cards">
           {/* Card TV ao Vivo */}
           <button 
+            ref={tvCardRef}
             className={`mode-card tv-card ${hoveredCard === 'tv' ? 'hovered' : ''}`}
             onClick={() => onSelect('tv')}
             onMouseEnter={() => setHoveredCard('tv')}
             onMouseLeave={() => setHoveredCard(null)}
+            onFocus={handleTvFocus}
+            onBlur={handleBlur}
+            data-focusable="true"
+            data-focus-key="tv-card"
           >
             <div className="card-bg">
               <div className="card-gradient" />
@@ -117,10 +149,15 @@ export function HomeSelector({ onSelect }: HomeSelectorProps) {
 
           {/* Card Filmes e Séries */}
           <button 
+            ref={moviesCardRef}
             className={`mode-card movies-card ${hoveredCard === 'movies' ? 'hovered' : ''}`}
             onClick={() => onSelect('movies')}
             onMouseEnter={() => setHoveredCard('movies')}
             onMouseLeave={() => setHoveredCard(null)}
+            onFocus={handleMoviesFocus}
+            onBlur={handleBlur}
+            data-focusable="true"
+            data-focus-key="movies-card"
           >
             <div className="card-bg">
               <div className="card-gradient" />

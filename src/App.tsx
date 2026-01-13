@@ -7,6 +7,7 @@ import type { Channel } from './types/channel';
 import type { Movie } from './types/movie';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { DpadNavigationProvider, useDpad } from './contexts/DpadContext';
 import './App.css';
 
 // Lazy loading dos componentes pesados
@@ -450,9 +451,11 @@ function AdultModeProvider({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <BrowserRouter>
-      <AdultModeProvider>
-        <AppLayout />
-      </AdultModeProvider>
+      <DpadNavigationProvider>
+        <AdultModeProvider>
+          <AppLayout />
+        </AdultModeProvider>
+      </DpadNavigationProvider>
     </BrowserRouter>
   );
 }

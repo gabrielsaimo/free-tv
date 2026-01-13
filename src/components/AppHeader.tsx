@@ -111,13 +111,23 @@ export const AppHeader = memo(function AppHeader({
           {/* Logo e Voltar */}
           <div className="header-left">
             {showBackButton ? (
-              <button className="header-back-btn" onClick={handleBack}>
+              <button 
+                className="header-back-btn" 
+                onClick={handleBack}
+                data-focusable="true"
+                data-focus-key="header-back"
+              >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
               </button>
             ) : (
-              <button className="header-logo" onClick={handleLogoClick}>
+              <button 
+                className="header-logo" 
+                onClick={handleLogoClick}
+                data-focusable="true"
+                data-focus-key="header-logo"
+              >
                 <div className="logo-icon">
                   <svg viewBox="0 0 32 32" fill="none">
                     <path d="M5 8C5 6.34315 6.34315 5 8 5H24C25.6569 5 27 6.34315 27 8V21C27 22.6569 25.6569 24 24 24H8C6.34315 24 5 22.6569 5 21V8Z" fill="url(#logoGrad)" />
@@ -138,11 +148,13 @@ export const AppHeader = memo(function AppHeader({
             {title && <h1 className="header-title">{title}</h1>}
           </div>
 
-          {/* Navegação Central */}
+            {/* Navegação Central */}
           <nav className="header-nav">
           <button 
             className={`nav-link ${isTV ? 'active' : ''}`}
             onClick={() => handleNavigation('/tv')}
+            data-focusable="true"
+            data-focus-key="nav-tv"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -154,6 +166,8 @@ export const AppHeader = memo(function AppHeader({
           <button 
             className={`nav-link ${isMovies ? 'active' : ''}`}
             onClick={() => handleNavigation('/movies')}
+            data-focusable="true"
+            data-focus-key="nav-movies"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="2" y="2" width="20" height="20" rx="2" />
@@ -165,7 +179,12 @@ export const AppHeader = memo(function AppHeader({
 
         {/* Ações da Direita */}
         <div className="header-right">
-          <button className="header-home-btn" onClick={() => handleNavigation('/')}>
+          <button 
+            className="header-home-btn" 
+            onClick={() => handleNavigation('/')}
+            data-focusable="true"
+            data-focus-key="nav-home"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
               <polyline points="9 22 9 12 15 12 15 22"/>

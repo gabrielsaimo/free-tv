@@ -581,7 +581,19 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
 
       {/* Skip Intro Button */}
       {showSkipIntro && (
-        <button className="skip-intro-btn" onClick={(e) => { e.stopPropagation(); skipIntro(); }}>
+        <button 
+          className="skip-intro-btn" 
+          onClick={(e) => { e.stopPropagation(); skipIntro(); }}
+          data-focusable="true"
+          data-nav-group="player-actions"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              e.stopPropagation();
+              skipIntro();
+            }
+          }}
+        >
           <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
           </svg>
@@ -606,16 +618,93 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
           </svg>
           <h3>{error}</h3>
           <div className="error-actions">
-            <button onClick={handleRetry}>Tentar novamente</button>
-            <button onClick={() => openInExternalPlayer('newtab')}>Abrir em nova aba</button>
+            <button 
+              onClick={handleRetry}
+              data-focusable="true"
+              data-nav-group="error-actions"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleRetry();
+                }
+              }}
+            >
+              Tentar novamente
+            </button>
+            <button 
+              onClick={() => openInExternalPlayer('newtab')}
+              data-focusable="true"
+              data-nav-group="error-actions"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openInExternalPlayer('newtab');
+                }
+              }}
+            >
+              Abrir em nova aba
+            </button>
           </div>
           <div className="external-players">
             <p>Abrir em player externo:</p>
             <div className="player-buttons">
-              <button onClick={() => openInExternalPlayer('vlc')} title="VLC Media Player">VLC</button>
-              <button onClick={() => openInExternalPlayer('iina')} title="IINA (macOS)">IINA</button>
-              <button onClick={() => openInExternalPlayer('potplayer')} title="PotPlayer">PotPlayer</button>
-              <button onClick={() => openInExternalPlayer('copy')} title="Copiar URL">📋 Copiar URL</button>
+              <button 
+                onClick={() => openInExternalPlayer('vlc')} 
+                title="VLC Media Player"
+                data-focusable="true"
+                data-nav-group="external-players"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openInExternalPlayer('vlc');
+                  }
+                }}
+              >
+                VLC
+              </button>
+              <button 
+                onClick={() => openInExternalPlayer('iina')} 
+                title="IINA (macOS)"
+                data-focusable="true"
+                data-nav-group="external-players"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openInExternalPlayer('iina');
+                  }
+                }}
+              >
+                IINA
+              </button>
+              <button 
+                onClick={() => openInExternalPlayer('potplayer')} 
+                title="PotPlayer"
+                data-focusable="true"
+                data-nav-group="external-players"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openInExternalPlayer('potplayer');
+                  }
+                }}
+              >
+                PotPlayer
+              </button>
+              <button 
+                onClick={() => openInExternalPlayer('copy')} 
+                title="Copiar URL"
+                data-focusable="true"
+                data-nav-group="external-players"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openInExternalPlayer('copy');
+                  }
+                }}
+              >
+                📋 Copiar URL
+              </button>
             </div>
           </div>
           <p className="error-hint">
@@ -637,13 +726,36 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
                 </span>
               )}
             </div>
-            <button className="next-episode-btn" onClick={handleNextEpisode}>
+            <button 
+              className="next-episode-btn" 
+              onClick={handleNextEpisode}
+              data-focusable="true"
+              data-nav-group="next-episode"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleNextEpisode();
+                }
+              }}
+            >
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
               </svg>
               <span>Reproduzir</span>
             </button>
-            <button className="next-dismiss-btn" onClick={() => setShowNextEpisodeButton(false)}>
+            <button 
+              className="next-dismiss-btn" 
+              onClick={() => setShowNextEpisodeButton(false)}
+              data-focusable="true"
+              data-nav-group="next-episode"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+                  e.preventDefault();
+                  setShowNextEpisodeButton(false);
+                }
+              }}
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 6L6 18M6 6l12 12"/>
               </svg>
@@ -656,7 +768,19 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
       <div className={`player-controls ${showControls ? 'visible' : ''}`} onClick={(e) => e.stopPropagation()}>
         {/* Top bar */}
         <div className="controls-top">
-          <button className="control-btn back-btn" onClick={onBack} title="Voltar (Esc)">
+          <button 
+            className="control-btn back-btn" 
+            onClick={onBack} 
+            title="Voltar (Esc)"
+            data-focusable="true"
+            data-nav-group="player-top"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onBack();
+              }
+            }}
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
@@ -671,6 +795,17 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
                 className="control-btn" 
                 onClick={() => setShowExternalMenu(!showExternalMenu)}
                 title="Abrir em player externo"
+                data-focusable="true"
+                data-nav-group="player-top"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setShowExternalMenu(!showExternalMenu);
+                  } else if (e.key === 'Escape' && showExternalMenu) {
+                    e.preventDefault();
+                    setShowExternalMenu(false);
+                  }
+                }}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
@@ -679,20 +814,90 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
               </button>
               {showExternalMenu && (
                 <div className="external-dropdown">
-                  <button onClick={() => { openInExternalPlayer('vlc'); setShowExternalMenu(false); }}>
+                  <button 
+                    onClick={() => { openInExternalPlayer('vlc'); setShowExternalMenu(false); }}
+                    data-focusable="true"
+                    data-nav-group="external-menu"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openInExternalPlayer('vlc');
+                        setShowExternalMenu(false);
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setShowExternalMenu(false);
+                      }
+                    }}
+                  >
                     🎬 VLC Player
                   </button>
-                  <button onClick={() => { openInExternalPlayer('iina'); setShowExternalMenu(false); }}>
+                  <button 
+                    onClick={() => { openInExternalPlayer('iina'); setShowExternalMenu(false); }}
+                    data-focusable="true"
+                    data-nav-group="external-menu"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openInExternalPlayer('iina');
+                        setShowExternalMenu(false);
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setShowExternalMenu(false);
+                      }
+                    }}
+                  >
                     🎥 IINA (macOS)
                   </button>
-                  <button onClick={() => { openInExternalPlayer('potplayer'); setShowExternalMenu(false); }}>
+                  <button 
+                    onClick={() => { openInExternalPlayer('potplayer'); setShowExternalMenu(false); }}
+                    data-focusable="true"
+                    data-nav-group="external-menu"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openInExternalPlayer('potplayer');
+                        setShowExternalMenu(false);
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setShowExternalMenu(false);
+                      }
+                    }}
+                  >
                     ▶️ PotPlayer
                   </button>
-                  <button onClick={() => { openInExternalPlayer('newtab'); setShowExternalMenu(false); }}>
+                  <button 
+                    onClick={() => { openInExternalPlayer('newtab'); setShowExternalMenu(false); }}
+                    data-focusable="true"
+                    data-nav-group="external-menu"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openInExternalPlayer('newtab');
+                        setShowExternalMenu(false);
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setShowExternalMenu(false);
+                      }
+                    }}
+                  >
                     🌐 Nova aba
                   </button>
                   <hr />
-                  <button onClick={() => { openInExternalPlayer('copy'); setShowExternalMenu(false); }}>
+                  <button 
+                    onClick={() => { openInExternalPlayer('copy'); setShowExternalMenu(false); }}
+                    data-focusable="true"
+                    data-nav-group="external-menu"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openInExternalPlayer('copy');
+                        setShowExternalMenu(false);
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setShowExternalMenu(false);
+                      }
+                    }}
+                  >
                     📋 Copiar URL
                   </button>
                 </div>
@@ -703,7 +908,18 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
 
         {/* Center play button */}
         {!isPlaying && !isLoading && !error && (
-          <button className="center-play" onClick={togglePlay}>
+          <button 
+            className="center-play" 
+            onClick={togglePlay}
+            data-focusable="true"
+            data-nav-group="player-center"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                togglePlay();
+              }
+            }}
+          >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M8 5v14l11-7z" />
             </svg>
@@ -726,7 +942,19 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
           <div className="controls-row">
             <div className="controls-left">
               {/* Play/Pause */}
-              <button className="control-btn" onClick={togglePlay} title={isPlaying ? 'Pausar (K)' : 'Reproduzir (K)'}>
+              <button 
+                className="control-btn" 
+                onClick={togglePlay} 
+                title={isPlaying ? 'Pausar (K)' : 'Reproduzir (K)'}
+                data-focusable="true"
+                data-nav-group="player-controls"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    togglePlay();
+                  }
+                }}
+              >
                 {isPlaying ? (
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
@@ -739,7 +967,19 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
               </button>
 
               {/* Rewind */}
-              <button className="control-btn" onClick={() => seek(-skipTime)} title={`Voltar ${skipTime}s (←)`}>
+              <button 
+                className="control-btn" 
+                onClick={() => seek(-skipTime)} 
+                title={`Voltar ${skipTime}s (←)`}
+                data-focusable="true"
+                data-nav-group="player-controls"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    seek(-skipTime);
+                  }
+                }}
+              >
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
                   <text x="12" y="15" fontSize="7" fill="currentColor" textAnchor="middle" fontWeight="bold">{skipTime}</text>
@@ -747,7 +987,19 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
               </button>
 
               {/* Forward */}
-              <button className="control-btn" onClick={() => seek(skipTime)} title={`Avançar ${skipTime}s (→)`}>
+              <button 
+                className="control-btn" 
+                onClick={() => seek(skipTime)} 
+                title={`Avançar ${skipTime}s (→)`}
+                data-focusable="true"
+                data-nav-group="player-controls"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    seek(skipTime);
+                  }
+                }}
+              >
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/>
                   <text x="12" y="15" fontSize="7" fill="currentColor" textAnchor="middle" fontWeight="bold">{skipTime}</text>
@@ -756,7 +1008,19 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
 
               {/* Volume */}
               <div className="volume-control">
-                <button className="control-btn" onClick={() => setIsMuted(m => !m)} title="Mudo (M)">
+                <button 
+                  className="control-btn" 
+                  onClick={() => setIsMuted(m => !m)} 
+                  title="Mudo (M)"
+                  data-focusable="true"
+                  data-nav-group="player-controls"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setIsMuted(m => !m);
+                    }
+                  }}
+                >
                   {isMuted || volume === 0 ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M11 5L6 9H2v6h4l5 4V5z" />
@@ -780,6 +1044,8 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
                     setIsMuted(false);
                   }}
                   className="volume-slider"
+                  data-focusable="true"
+                  data-nav-group="player-controls"
                 />
               </div>
 
@@ -792,7 +1058,19 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
             <div className="controls-right">
               {/* Next Episode Button */}
               {nextEpisode && (
-                <button className="control-btn next-ep-btn" onClick={handleNextEpisode} title="Próximo episódio (N)">
+                <button 
+                  className="control-btn next-ep-btn" 
+                  onClick={handleNextEpisode} 
+                  title="Próximo episódio (N)"
+                  data-focusable="true"
+                  data-nav-group="player-controls"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleNextEpisode();
+                    }
+                  }}
+                >
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
                   </svg>
@@ -805,6 +1083,17 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
                   className="control-btn" 
                   onClick={() => setShowSettingsMenu(!showSettingsMenu)}
                   title="Configurações"
+                  data-focusable="true"
+                  data-nav-group="player-controls"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setShowSettingsMenu(!showSettingsMenu);
+                    } else if (e.key === 'Escape' && showSettingsMenu) {
+                      e.preventDefault();
+                      setShowSettingsMenu(false);
+                    }
+                  }}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="3"/>
@@ -818,6 +1107,8 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
                       <select 
                         value={playbackRate}
                         onChange={(e) => setPlaybackRate(parseFloat(e.target.value))}
+                        data-focusable="true"
+                        data-nav-group="settings-menu"
                       >
                         <option value="0.25">0.25x</option>
                         <option value="0.5">0.5x</option>
@@ -836,6 +1127,8 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
                       <select 
                         value={skipTime}
                         onChange={(e) => setSkipTime(parseInt(e.target.value))}
+                        data-focusable="true"
+                        data-nav-group="settings-menu"
                       >
                         <option value="5">5s</option>
                         <option value="10">10s</option>
@@ -849,6 +1142,8 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
                       <select 
                         value={aspectRatio}
                         onChange={(e) => setAspectRatio(e.target.value as typeof aspectRatio)}
+                        data-focusable="true"
+                        data-nav-group="settings-menu"
                       >
                         <option value="auto">Auto</option>
                         <option value="16:9">16:9</option>
@@ -865,6 +1160,8 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
                         value={brightness}
                         onChange={(e) => setBrightness(parseInt(e.target.value))}
                         className="settings-slider"
+                        data-focusable="true"
+                        data-nav-group="settings-menu"
                       />
                     </div>
                     <hr />
@@ -890,7 +1187,19 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
 
               {/* Picture-in-Picture */}
               {document.pictureInPictureEnabled && (
-                <button className="control-btn" onClick={togglePiP} title="Picture-in-Picture (P)">
+                <button 
+                  className="control-btn" 
+                  onClick={togglePiP} 
+                  title="Picture-in-Picture (P)"
+                  data-focusable="true"
+                  data-nav-group="player-controls"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      togglePiP();
+                    }
+                  }}
+                >
                   {isPiP ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="2" y="4" width="20" height="14" rx="2"/>
@@ -911,7 +1220,19 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
               )}
 
               {/* Fullscreen */}
-              <button className="control-btn" onClick={toggleFullscreen} title="Tela cheia (F)">
+              <button 
+                className="control-btn" 
+                onClick={toggleFullscreen} 
+                title="Tela cheia (F)"
+                data-focusable="true"
+                data-nav-group="player-controls"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleFullscreen();
+                  }
+                }}
+              >
                 {isFullscreen ? (
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M8 3v3a2 2 0 01-2 2H3M21 8h-3a2 2 0 01-2-2V3M3 16h3a2 2 0 012 2v3M16 21v-3a2 2 0 012-2h3" />

@@ -277,13 +277,57 @@ const MovieCard = memo(function MovieCard({
   size?: 'normal' | 'large';
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      onSelect(movie);
+    }
+  }, [onSelect, movie]);
+
+  // Detecta quando elemento recebe foco nativo
+  const handleFocus = useCallback(() => {
+    setIsFocused(true);
+    // Garante que a classe dpad-focused também seja adicionada
+    if (cardRef.current) {
+      cardRef.current.setAttribute('data-focused', 'true');
+    }
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setIsFocused(false);
+    if (cardRef.current) {
+      cardRef.current.setAttribute('data-focused', 'false');
+    }
+  }, []);
+
+  // Classes combinadas para máxima visibilidade
+  const cardClasses = [
+    'movie-card',
+    isActive ? 'active' : '',
+    isHovered || isFocused ? 'hovered' : '',
+    isFocused ? 'dpad-card-focused dpad-focused' : '',
+    size
+  ].filter(Boolean).join(' ');
 
   return (
     <div 
-      className={`movie-card ${isActive ? 'active' : ''} ${isHovered ? 'hovered' : ''} ${size}`}
+      ref={cardRef}
+      className={cardClasses}
       onClick={() => onSelect(movie)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      data-focusable="true"
+      data-movie-id={movie.id}
+      aria-label={`${movie.name} - ${movie.category}`}
     >
       <div className="movie-poster">
         <LazyImage 
@@ -292,16 +336,24 @@ const MovieCard = memo(function MovieCard({
           fallbackText={movie.name.substring(0, 2)}
         />
         
-        {isHovered && (
+        {/* Overlay sempre visível quando focado via D-pad */}
+        {(isHovered || isFocused) && (
           <div className="movie-overlay">
             <div className="overlay-content">
-              <button className="play-btn">
+              <button className="play-btn" tabIndex={-1}>
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
               </button>
             </div>
             <div className="overlay-gradient" />
+          </div>
+        )}
+        
+        {/* Indicador de foco D-pad */}
+        {isFocused && (
+          <div className="dpad-focus-indicator">
+            <span className="focus-ring" />
           </div>
         )}
         
@@ -337,13 +389,54 @@ const SeriesCard = memo(function SeriesCard({
   isActive?: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      onSelect(series);
+    }
+  }, [onSelect, series]);
+
+  const handleFocus = useCallback(() => {
+    setIsFocused(true);
+    if (cardRef.current) {
+      cardRef.current.setAttribute('data-focused', 'true');
+    }
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setIsFocused(false);
+    if (cardRef.current) {
+      cardRef.current.setAttribute('data-focused', 'false');
+    }
+  }, []);
+
+  // Classes combinadas para máxima visibilidade
+  const cardClasses = [
+    'movie-card',
+    isActive ? 'active' : '',
+    isHovered || isFocused ? 'hovered' : '',
+    isFocused ? 'dpad-card-focused dpad-focused' : ''
+  ].filter(Boolean).join(' ');
 
   return (
     <div 
-      className={`movie-card ${isActive ? 'active' : ''} ${isHovered ? 'hovered' : ''}`}
+      ref={cardRef}
+      className={cardClasses}
       onClick={() => onSelect(series)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      data-focusable="true"
+      data-series-id={series.id}
+      aria-label={`${series.name} - ${series.seasonCount} temporadas, ${series.episodeCount} episódios`}
     >
       <div className="movie-poster">
         <LazyImage 
@@ -405,13 +498,32 @@ const SeriesModal = memo(function SeriesModal({
   const [episodePage, setEpisodePage] = useState(1);
   const modalRef = useRef<HTMLDivElement>(null);
   const episodesRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
+    
+    // Auto-focus no botão de fechar quando o modal abre
+    setTimeout(() => {
+      closeButtonRef.current?.focus();
+    }, 100);
+    
     return () => {
       document.body.style.overflow = '';
     };
   }, []);
+
+  // Handler para fechar com Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   // Reset page quando muda temporada
   useEffect(() => {
@@ -440,7 +552,7 @@ const SeriesModal = memo(function SeriesModal({
 
   return (
     <div className="series-modal-backdrop" ref={modalRef} onClick={handleBackdropClick}>
-      <div className="series-modal">
+      <div className="series-modal" role="dialog" aria-modal="true">
         <div className="modal-header">
           <div className="modal-poster">
             <LazyImage 
@@ -457,7 +569,13 @@ const SeriesModal = memo(function SeriesModal({
               <span className="meta-category">{series.category}</span>
             </div>
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button 
+            ref={closeButtonRef}
+            className="modal-close" 
+            onClick={onClose}
+            data-focusable="true"
+            data-focus-key="modal-close"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 6L6 18M6 6l12 12"/>
             </svg>
@@ -472,6 +590,8 @@ const SeriesModal = memo(function SeriesModal({
                 key={season}
                 className={`season-tab ${selectedSeason === season ? 'active' : ''}`}
                 onClick={() => setSelectedSeason(season)}
+                data-focusable="true"
+                data-focus-key={`season-${season}`}
               >
                 <span className="season-number">T{season}</span>
                 <span className="episode-count">{series.seasons.get(season)?.length} eps</span>
@@ -490,6 +610,8 @@ const SeriesModal = memo(function SeriesModal({
                   key={episode.id}
                   className="episode-card"
                   onClick={() => onSelectEpisode(episode, series)}
+                  data-focusable="true"
+                  data-focus-key={`episode-${episode.id}`}
                 >
                   <div className="episode-number">
                     <span>{info?.episode || index + 1}</span>
@@ -529,8 +651,23 @@ const HeroBanner = memo(function HeroBanner({
 }) {
   const fallbackUrl = `https://picsum.photos/1920/800?random=${movie.id}`;
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect(movie);
+    }
+  }, [onSelect, movie]);
+
   return (
-    <div className="hero-banner" onClick={() => onSelect(movie)}>
+    <div 
+      className="hero-banner" 
+      onClick={() => onSelect(movie)}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      data-focusable="true"
+      data-focus-key="hero-banner"
+    >
       <div className="hero-backdrop">
         <LazyImage 
           src={movie.logo || fallbackUrl} 
@@ -549,7 +686,11 @@ const HeroBanner = memo(function HeroBanner({
         <p className="hero-category">{movie.category}</p>
         
         <div className="hero-actions">
-          <button className="hero-play-btn" onClick={(e) => { e.stopPropagation(); onSelect(movie); }}>
+          <button 
+            className="hero-play-btn" 
+            onClick={(e) => { e.stopPropagation(); onSelect(movie); }}
+            tabIndex={-1}
+          >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M8 5v14l11-7z"/>
             </svg>
@@ -701,7 +842,18 @@ const LazyCategoryRowAsync = memo(function LazyCategoryRowAsync({
         <h2>{categoryInfo.name}</h2>
         <div className="category-header-right">
           <span className="category-count">{categoryInfo.count.toLocaleString('pt-BR')} títulos</span>
-          <button className="see-all-btn" onClick={onSeeAll}>
+          <button 
+            className="see-all-btn" 
+            onClick={onSeeAll}
+            data-focusable="true"
+            data-nav-group="category-header"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSeeAll();
+              }
+            }}
+          >
             Ver todos
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 18l6-6-6-6"/>
@@ -721,7 +873,18 @@ const LazyCategoryRowAsync = memo(function LazyCategoryRowAsync({
       ) : (
         <div className="carousel-wrapper">
           {canScrollLeft && (
-            <button className="carousel-nav prev" onClick={() => scroll('left')}>
+            <button 
+              className="carousel-nav prev" 
+              onClick={() => scroll('left')}
+              data-focusable="true"
+              data-nav-group="carousel-nav"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  scroll('left');
+                }
+              }}
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M15 18l-6-6 6-6"/>
               </svg>
@@ -748,7 +911,18 @@ const LazyCategoryRowAsync = memo(function LazyCategoryRowAsync({
               )
             ))}
             {hasMore && (
-              <button className="load-more-card" onClick={() => setPage(p => p + 1)}>
+              <button 
+                className="load-more-card" 
+                onClick={() => setPage(p => p + 1)}
+                data-focusable="true"
+                data-nav-group="carousel-items"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setPage(p => p + 1);
+                  }
+                }}
+              >
                 <span>+{(totalItems - displayItems.length).toLocaleString('pt-BR')}</span>
                 <small>Ver mais</small>
               </button>
@@ -756,7 +930,18 @@ const LazyCategoryRowAsync = memo(function LazyCategoryRowAsync({
           </div>
           
           {canScrollRight && (
-            <button className="carousel-nav next" onClick={() => scroll('right')}>
+            <button 
+              className="carousel-nav next" 
+              onClick={() => scroll('right')}
+              data-focusable="true"
+              data-nav-group="carousel-nav"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  scroll('right');
+                }
+              }}
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 18l6-6-6-6"/>
               </svg>
@@ -1307,12 +1492,28 @@ export function MovieCatalog({
             <button
               className={`nav-btn ${contentFilter === 'all' ? 'active' : ''}`}
               onClick={() => setContentFilter('all')}
+              data-focusable="true"
+              data-nav-group="content-filter"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setContentFilter('all');
+                }
+              }}
             >
               <span className="nav-label">Todos</span>
             </button>
             <button
               className={`nav-btn ${contentFilter === 'movies' ? 'active' : ''}`}
               onClick={() => setContentFilter('movies')}
+              data-focusable="true"
+              data-nav-group="content-filter"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setContentFilter('movies');
+                }
+              }}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/>
@@ -1322,6 +1523,14 @@ export function MovieCatalog({
             <button
               className={`nav-btn ${contentFilter === 'series' ? 'active' : ''}`}
               onClick={() => setContentFilter('series')}
+              data-focusable="true"
+              data-nav-group="content-filter"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setContentFilter('series');
+                }
+              }}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.89 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/>
@@ -1335,6 +1544,17 @@ export function MovieCatalog({
             <button 
               className={`category-dropdown-btn ${selectedCategory ? 'has-selection' : ''}`}
               onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+              data-focusable="true"
+              data-nav-group="category-dropdown"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setShowCategoryDropdown(!showCategoryDropdown);
+                } else if (e.key === 'Escape' && showCategoryDropdown) {
+                  e.preventDefault();
+                  setShowCategoryDropdown(false);
+                }
+              }}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                 <path d="M4 6h16v2H4zm4 5h12v2H8zm6 5h6v2h-6z"/>
@@ -1349,6 +1569,18 @@ export function MovieCatalog({
                 <button
                   className={`dropdown-item ${selectedCategory === null ? 'active' : ''}`}
                   onClick={() => { handleCategoryClick(null); setShowCategoryDropdown(false); }}
+                  data-focusable="true"
+                  data-nav-group="category-dropdown-items"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCategoryClick(null);
+                      setShowCategoryDropdown(false);
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault();
+                      setShowCategoryDropdown(false);
+                    }
+                  }}
                 >
                   Todas as Categorias
                 </button>
@@ -1357,6 +1589,18 @@ export function MovieCatalog({
                     key={cat.name}
                     className={`dropdown-item ${selectedCategory === cat.name ? 'active' : ''}`}
                     onClick={() => { handleCategoryClick(cat.name); setShowCategoryDropdown(false); }}
+                    data-focusable="true"
+                    data-nav-group="category-dropdown-items"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleCategoryClick(cat.name);
+                        setShowCategoryDropdown(false);
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setShowCategoryDropdown(false);
+                      }
+                    }}
                   >
                     {getCategoryType(cat.name) === 'movies' && '🎬 '}
                     {getCategoryType(cat.name) === 'series' && '📺 '}
@@ -1383,9 +1627,29 @@ export function MovieCatalog({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
+                data-focusable="true"
+                data-nav-group="search"
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setSearchQuery('');
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
               />
               {searchQuery && (
-                <button className="clear-btn" onClick={() => setSearchQuery('')}>
+                <button 
+                  className="clear-btn" 
+                  onClick={() => setSearchQuery('')}
+                  data-focusable="true"
+                  data-nav-group="search"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSearchQuery('');
+                    }
+                  }}
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M18 6L6 18M6 6l12 12"/>
                   </svg>
@@ -1402,6 +1666,14 @@ export function MovieCatalog({
               <button
                 className={`category-chip ${selectedCategory === null ? 'active' : ''}`}
                 onClick={() => handleCategoryClick(null)}
+                data-focusable="true"
+                data-nav-group="categories-bar"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleCategoryClick(null);
+                  }
+                }}
               >
                 Todas
               </button>
@@ -1413,6 +1685,14 @@ export function MovieCatalog({
                     className={`category-chip ${selectedCategory === cat.name ? 'active' : ''} type-${catType}`}
                     onClick={() => handleCategoryClick(cat.name)}
                     title={catType === 'movies' ? 'Categoria de Filmes' : catType === 'series' ? 'Categoria de Séries' : catType === 'mixed' ? 'Filmes e Séries' : ''}
+                    data-focusable="true"
+                    data-nav-group="categories-bar"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleCategoryClick(cat.name);
+                      }
+                    }}
                   >
                     {catType === 'movies' && <span className="type-icon">🎬</span>}
                     {catType === 'series' && <span className="type-icon">📺</span>}
@@ -1443,10 +1723,23 @@ export function MovieCatalog({
               </div>
               <h3>Nenhum resultado encontrado</h3>
               <p>Tente buscar por outro termo ou categoria</p>
-              <button className="reset-btn" onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory(null);
-              }}>
+              <button 
+                className="reset-btn" 
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory(null);
+                }}
+                data-focusable="true"
+                data-nav-group="empty-state"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSearchQuery('');
+                    setSelectedCategory(null);
+                  }
+                }}
+              >
                 Limpar filtros
               </button>
             </div>
@@ -1498,6 +1791,14 @@ export function MovieCatalog({
                 <button 
                   className="see-all-categories-btn"
                   onClick={() => setShowAllCategoriesModal(true)}
+                  data-focusable="true"
+                  data-nav-group="platforms-header"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setShowAllCategoriesModal(true);
+                    }
+                  }}
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
                     <path d="M4 6h16v2H4zm4 5h12v2H8zm6 5h6v2h-6z"/>
@@ -1518,6 +1819,14 @@ export function MovieCatalog({
                       className="platform-card"
                       onClick={() => handleCategoryClick(cat.name)}
                       style={{ '--platform-color': style.color } as React.CSSProperties}
+                      data-focusable="true"
+                      data-nav-group="platform-cards"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleCategoryClick(cat.name);
+                        }
+                      }}
                     >
                       <div className="platform-icon">
                         {style.icon}
@@ -1560,7 +1869,16 @@ export function MovieCatalog({
 
       {/* Modal de Todas as Categorias */}
       {showAllCategoriesModal && (
-        <div className="categories-modal-overlay" onClick={() => setShowAllCategoriesModal(false)}>
+        <div 
+          className="categories-modal-overlay" 
+          onClick={() => setShowAllCategoriesModal(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              setShowAllCategoriesModal(false);
+            }
+          }}
+        >
           <div className="categories-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>
@@ -1569,7 +1887,19 @@ export function MovieCatalog({
                 </svg>
                 Todas as Categorias
               </h2>
-              <button className="modal-close" onClick={() => setShowAllCategoriesModal(false)}>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowAllCategoriesModal(false)}
+                data-focusable="true"
+                data-nav-group="categories-modal"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+                    e.preventDefault();
+                    setShowAllCategoriesModal(false);
+                  }
+                }}
+              >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6L6 18M6 6l12 12"/>
                 </svg>
@@ -1589,6 +1919,18 @@ export function MovieCatalog({
                       key={cat.name}
                       className="category-item"
                       onClick={() => { handleCategoryClick(cat.name); setShowAllCategoriesModal(false); }}
+                      data-focusable="true"
+                      data-nav-group="categories-modal-items"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleCategoryClick(cat.name);
+                          setShowAllCategoriesModal(false);
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault();
+                          setShowAllCategoriesModal(false);
+                        }
+                      }}
                     >
                       <span className="category-name">{cat.name}</span>
                       <span className="category-count">{cat.count.toLocaleString('pt-BR')}</span>
@@ -1614,6 +1956,18 @@ export function MovieCatalog({
                         key={cat.name}
                         className="category-item"
                         onClick={() => { handleCategoryClick(cat.name); setShowAllCategoriesModal(false); }}
+                        data-focusable="true"
+                        data-nav-group="categories-modal-items"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleCategoryClick(cat.name);
+                            setShowAllCategoriesModal(false);
+                          } else if (e.key === 'Escape') {
+                            e.preventDefault();
+                            setShowAllCategoriesModal(false);
+                          }
+                        }}
                       >
                         <span className="category-name">{cat.name}</span>
                         <span className="category-count">{cat.count.toLocaleString('pt-BR')}</span>

@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState, useCallback } from 'react';
 import type { Movie } from '../types/movie';
 import './MovieCard.css';
 
@@ -9,17 +9,32 @@ interface MovieCardProps {
 }
 
 export const MovieCard = memo(function MovieCard({ movie, onSelect, isActive }: MovieCardProps) {
+  const [isFocused, setIsFocused] = useState(false);
+
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
     // Fallback para placeholder se a imagem não carregar
     target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(movie.name.substring(0, 2))}&background=6366f1&color=fff&size=300&bold=true`;
   };
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect(movie);
+    }
+  }, [onSelect, movie]);
+
   return (
     <div 
-      className={`movie-card ${isActive ? 'active' : ''}`}
+      className={`movie-card ${isActive ? 'active' : ''} ${isFocused ? 'focused' : ''}`}
       onClick={() => onSelect(movie)}
+      onKeyDown={handleKeyDown}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
       title={movie.name}
+      role="button"
+      tabIndex={0}
+      data-focusable="true"
     >
       <div className="movie-poster">
         {movie.logo ? (
@@ -37,7 +52,7 @@ export const MovieCard = memo(function MovieCard({ movie, onSelect, isActive }: 
           </div>
         )}
         <div className="movie-overlay">
-          <button className="play-btn">
+          <button className="play-btn" tabIndex={-1}>
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M8 5v14l11-7z" />
             </svg>

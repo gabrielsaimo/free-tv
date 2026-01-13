@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useState, useCallback } from 'react';
 import './ChannelCard.css';
 
 interface ChannelCardProps {
@@ -24,6 +24,7 @@ export const ChannelCard = memo(function ChannelCard({
   onToggleFavorite,
 }: ChannelCardProps) {
   const [imgError, setImgError] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const initials = name
     .split(' ')
@@ -32,13 +33,28 @@ export const ChannelCard = memo(function ChannelCard({
     .slice(0, 2)
     .toUpperCase();
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect();
+    }
+    // Tecla F para favoritar via D-pad
+    if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      onToggleFavorite(e as unknown as React.MouseEvent);
+    }
+  }, [onSelect, onToggleFavorite]);
+
   return (
     <div
-      className={`channel-card ${isActive ? 'active' : ''}`}
+      className={`channel-card ${isActive ? 'active' : ''} ${isFocused ? 'focused' : ''}`}
       onClick={onSelect}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onSelect()}
+      data-focusable="true"
+      onKeyDown={handleKeyDown}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
     >
       {channelNumber && (
         <span className="channel-number">{String(channelNumber).padStart(2, '0')}</span>
@@ -67,6 +83,8 @@ export const ChannelCard = memo(function ChannelCard({
         className={`favorite-btn ${isFavorite ? 'is-favorite' : ''}`}
         onClick={onToggleFavorite}
         aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+        tabIndex={-1}
+        data-focusable="false"
       >
         <svg
           viewBox="0 0 24 24"

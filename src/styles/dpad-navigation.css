@@ -1,0 +1,698 @@
+/* ============================================
+   ESTILOS DE FOCO D-PAD PARA NAVEGAÇÃO TV/CONTROLE
+   ============================================ */
+
+/* Variáveis de tema para foco - SUPER VISÍVEL */
+:root {
+  --focus-ring-color: #a855f7;
+  --focus-ring-color-rgb: 168, 85, 247;
+  --focus-ring-secondary: #06b6d4;
+  --focus-ring-secondary-rgb: 6, 182, 212;
+  --focus-ring-width: 5px;
+  --focus-ring-offset: 3px;
+  --focus-glow-size: 35px;
+  --focus-transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --focus-scale: 1.08;
+  --focus-scale-card: 1.15;
+}
+
+/* Reset do outline padrão para elementos focáveis D-pad */
+[data-focusable="true"] {
+  outline: none !important;
+  transition: var(--focus-transition);
+  position: relative;
+}
+
+/* Estado de foco principal - MUITO VISÍVEL */
+[data-focusable="true"].dpad-focused,
+[data-focusable="true"]:focus-visible,
+[data-focusable="true"]:focus,
+[data-focused="true"] {
+  outline: none !important;
+  z-index: 100 !important;
+}
+
+/* Indicador de foco dentro dos cards - SUPER BRILHANTE */
+.dpad-focus-indicator {
+  position: absolute;
+  inset: -8px;
+  border-radius: 16px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.dpad-focus-indicator .focus-ring {
+  position: absolute;
+  inset: 0;
+  border: 5px solid var(--focus-ring-color);
+  border-radius: inherit;
+  box-shadow: 
+    0 0 0 3px var(--focus-ring-secondary),
+    0 0 30px rgba(var(--focus-ring-color-rgb), 1),
+    0 0 60px rgba(var(--focus-ring-secondary-rgb), 0.7),
+    inset 0 0 25px rgba(var(--focus-ring-color-rgb), 0.4);
+  animation: focusPulse 1.2s ease-in-out infinite;
+}
+
+/* Classe especial para cards focados via D-pad - MÁXIMA VISIBILIDADE */
+.dpad-card-focused,
+.movie-card.dpad-card-focused,
+.movie-card.dpad-focused,
+.movie-card[data-focused="true"] {
+  transform: scale(1.15) translateY(-15px) !important;
+  z-index: 200 !important;
+  filter: brightness(1.1) !important;
+}
+
+.dpad-card-focused .movie-poster,
+.movie-card.dpad-card-focused .movie-poster,
+.movie-card.dpad-focused .movie-poster,
+.movie-card[data-focused="true"] .movie-poster {
+  box-shadow: 
+    0 0 0 5px var(--focus-ring-color),
+    0 0 0 9px var(--focus-ring-secondary),
+    0 0 50px rgba(var(--focus-ring-color-rgb), 1),
+    0 0 80px rgba(var(--focus-ring-secondary-rgb), 0.6),
+    0 25px 50px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 12px !important;
+}
+
+/* Anel de foco com glow - para botões e links */
+[data-focusable="true"].dpad-focused::before,
+[data-focusable="true"]:focus-visible::before,
+[data-focusable="true"]:focus::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--focus-ring-offset) * -1);
+  border-radius: inherit;
+  border: var(--focus-ring-width) solid var(--focus-ring-color);
+  box-shadow: 
+    0 0 var(--focus-glow-size) rgba(var(--focus-ring-color-rgb), 0.8),
+    0 0 calc(var(--focus-glow-size) * 2) rgba(var(--focus-ring-secondary-rgb), 0.5),
+    inset 0 0 var(--focus-glow-size) rgba(var(--focus-ring-color-rgb), 0.2);
+  pointer-events: none;
+  z-index: 1;
+  animation: focusPulse 1.2s ease-in-out infinite;
+}
+
+/* Animação de pulse no foco - MAIS INTENSA */
+@keyframes focusPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 var(--focus-glow-size) rgba(var(--focus-ring-color-rgb), 0.8),
+      0 0 calc(var(--focus-glow-size) * 2) rgba(var(--focus-ring-secondary-rgb), 0.5),
+      inset 0 0 var(--focus-glow-size) rgba(var(--focus-ring-color-rgb), 0.2);
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 
+      0 0 calc(var(--focus-glow-size) * 1.8) rgba(var(--focus-ring-color-rgb), 1),
+      0 0 calc(var(--focus-glow-size) * 2.5) rgba(var(--focus-ring-secondary-rgb), 0.7),
+      inset 0 0 calc(var(--focus-glow-size) * 1.5) rgba(var(--focus-ring-color-rgb), 0.3);
+    opacity: 0.95;
+    transform: scale(1.02);
+  }
+}
+
+/* ============================================
+   ESTILOS ESPECÍFICOS POR COMPONENTE
+   ============================================ */
+
+/* Cards (filmes, canais, séries) - escala e sombra SUPER VISÍVEL */
+.movie-card[data-focusable="true"].dpad-focused,
+.movie-card[data-focusable="true"][data-focused="true"],
+.movie-card[data-focusable="true"]:focus,
+.movie-card.dpad-card-focused,
+.channel-card[data-focusable="true"].dpad-focused,
+.channel-card[data-focusable="true"][data-focused="true"],
+.channel-card[data-focusable="true"]:focus,
+.mode-card[data-focusable="true"].dpad-focused,
+.mode-card[data-focusable="true"][data-focused="true"],
+.category-card[data-focusable="true"].dpad-focused,
+.platform-card[data-focusable="true"].dpad-focused,
+.platform-card[data-focusable="true"][data-focused="true"],
+.series-card[data-focusable="true"].dpad-focused,
+.series-card[data-focusable="true"][data-focused="true"] {
+  transform: scale(var(--focus-scale-card)) translateY(-15px) !important;
+  z-index: 200 !important;
+  box-shadow: 
+    0 0 0 5px var(--focus-ring-color),
+    0 0 0 10px rgba(var(--focus-ring-secondary-rgb), 0.6),
+    0 0 60px rgba(var(--focus-ring-color-rgb), 1),
+    0 0 100px rgba(var(--focus-ring-secondary-rgb), 0.5),
+    0 30px 60px rgba(0, 0, 0, 0.6) !important;
+  outline: none !important;
+  filter: brightness(1.1) contrast(1.05) !important;
+}
+
+/* Poster dentro do card focado - brilho MÁXIMO */
+.movie-card[data-focusable="true"].dpad-focused .movie-poster,
+.movie-card[data-focusable="true"][data-focused="true"] .movie-poster,
+.movie-card[data-focusable="true"]:focus .movie-poster,
+.movie-card.dpad-card-focused .movie-poster {
+  box-shadow: 
+    0 0 0 4px var(--focus-ring-color),
+    0 0 0 8px var(--focus-ring-secondary),
+    0 0 50px rgba(var(--focus-ring-color-rgb), 1) !important;
+  border-radius: 12px !important;
+}
+
+/* Overlay visível quando focado */
+.movie-card[data-focusable="true"].dpad-focused .movie-overlay,
+.movie-card[data-focusable="true"][data-focused="true"] .movie-overlay,
+.movie-card.dpad-card-focused .movie-overlay {
+  opacity: 1 !important;
+}
+
+/* Info do filme destacada quando focado */
+.movie-card[data-focusable="true"].dpad-focused .movie-info,
+.movie-card[data-focusable="true"][data-focused="true"] .movie-info,
+.movie-card.dpad-card-focused .movie-info {
+  background: linear-gradient(135deg, rgba(var(--focus-ring-color-rgb), 0.3), rgba(var(--focus-ring-secondary-rgb), 0.1)) !important;
+  padding: 10px !important;
+  border-radius: 0 0 12px 12px !important;
+}
+
+.movie-card[data-focusable="true"].dpad-focused .movie-title,
+.movie-card[data-focusable="true"][data-focused="true"] .movie-title,
+.movie-card.dpad-card-focused .movie-title {
+  color: white !important;
+  text-shadow: 
+    0 0 15px rgba(var(--focus-ring-color-rgb), 1),
+    0 0 30px rgba(var(--focus-ring-secondary-rgb), 0.8) !important;
+  font-weight: 700 !important;
+}
+
+/* Nome da categoria também brilha */
+.movie-card[data-focusable="true"].dpad-focused .movie-subtitle,
+.movie-card[data-focusable="true"][data-focused="true"] .movie-subtitle,
+.movie-card.dpad-card-focused .movie-subtitle {
+  color: rgba(var(--focus-ring-secondary-rgb), 1) !important;
+  font-weight: 500 !important;
+}
+
+.movie-card[data-focusable="true"].dpad-focused::before,
+.channel-card[data-focusable="true"].dpad-focused::before,
+.mode-card[data-focusable="true"].dpad-focused::before,
+.category-card[data-focusable="true"].dpad-focused::before,
+.platform-card[data-focusable="true"].dpad-focused::before,
+.series-card[data-focusable="true"].dpad-focused::before {
+  content: none; /* Desabilita o before padrão para cards */
+}
+
+/* Episode cards dentro do modal */
+.episode-card[data-focusable="true"].dpad-focused {
+  background: linear-gradient(135deg, rgba(var(--focus-ring-color-rgb), 0.3), rgba(var(--focus-ring-color-rgb), 0.1)) !important;
+  border-color: var(--focus-ring-color) !important;
+  transform: scale(1.02);
+  box-shadow: 
+    0 0 20px rgba(var(--focus-ring-color-rgb), 0.4),
+    inset 0 0 20px rgba(var(--focus-ring-color-rgb), 0.1);
+}
+
+/* Botões de navegação (abas, filtros) */
+.nav-link[data-focusable="true"].dpad-focused,
+.filter-tab[data-focusable="true"].dpad-focused,
+.mobile-tab[data-focusable="true"].dpad-focused,
+.season-tab[data-focusable="true"].dpad-focused {
+  background: linear-gradient(135deg, rgba(var(--focus-ring-color-rgb), 0.2), rgba(var(--focus-ring-color-rgb), 0.1));
+  border-color: var(--focus-ring-color);
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 
+    0 0 15px rgba(var(--focus-ring-color-rgb), 0.5),
+    inset 0 0 15px rgba(var(--focus-ring-color-rgb), 0.1);
+}
+
+/* Botões de ação (play, favorito, controles) */
+.play-btn[data-focusable="true"].dpad-focused,
+.favorite-btn[data-focusable="true"].dpad-focused,
+.control-btn[data-focusable="true"].dpad-focused,
+.header-btn[data-focusable="true"].dpad-focused,
+.header-back-btn[data-focusable="true"].dpad-focused,
+.header-home-btn[data-focusable="true"].dpad-focused,
+.header-logo[data-focusable="true"].dpad-focused,
+.collapse-btn[data-focusable="true"].dpad-focused,
+.close-btn[data-focusable="true"].dpad-focused,
+.modal-close[data-focusable="true"].dpad-focused {
+  transform: scale(1.15);
+  background: rgba(var(--focus-ring-color-rgb), 0.3) !important;
+  box-shadow: 
+    0 0 20px rgba(var(--focus-ring-color-rgb), 0.6),
+    0 0 40px rgba(var(--focus-ring-color-rgb), 0.3);
+}
+
+/* Input de busca */
+.search-input[data-focusable="true"].dpad-focused {
+  border-color: var(--focus-ring-color) !important;
+  box-shadow: 
+    0 0 0 3px rgba(var(--focus-ring-color-rgb), 0.3),
+    0 0 20px rgba(var(--focus-ring-color-rgb), 0.4);
+}
+
+/* Controles do player de vídeo */
+.video-controls button[data-focusable="true"].dpad-focused,
+.player-controls button[data-focusable="true"].dpad-focused {
+  transform: scale(1.2);
+  background: rgba(var(--focus-ring-color-rgb), 0.4) !important;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 25px rgba(var(--focus-ring-color-rgb), 0.7),
+    0 0 50px rgba(var(--focus-ring-color-rgb), 0.4);
+}
+
+/* Barra de volume */
+.volume-slider[data-focusable="true"].dpad-focused {
+  box-shadow: 
+    0 0 15px rgba(var(--focus-ring-color-rgb), 0.5);
+}
+
+/* ============================================
+   HOME SELECTOR - CARDS GRANDES
+   ============================================ */
+
+.home-selector .mode-card[data-focusable="true"].dpad-focused {
+  transform: scale(1.05) translateY(-10px);
+  box-shadow: 
+    0 0 0 4px var(--focus-ring-color),
+    0 0 60px rgba(var(--focus-ring-color-rgb), 0.6),
+    0 30px 60px rgba(0, 0, 0, 0.5);
+}
+
+.home-selector .mode-card[data-focusable="true"].dpad-focused .card-glow {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* ============================================
+   SIDEBAR - CANAIS
+   ============================================ */
+
+.sidebar .channel-card[data-focusable="true"].dpad-focused {
+  background: linear-gradient(135deg, rgba(var(--focus-ring-color-rgb), 0.2), rgba(var(--focus-ring-color-rgb), 0.05));
+  border-left: 4px solid var(--focus-ring-color);
+  transform: translateX(5px);
+  box-shadow: 
+    -5px 0 20px rgba(var(--focus-ring-color-rgb), 0.4),
+    0 0 30px rgba(var(--focus-ring-color-rgb), 0.2);
+}
+
+/* ============================================
+   MOVIE CATALOG - GRID DE FILMES
+   ============================================ */
+
+.movies-grid .movie-card[data-focusable="true"].dpad-focused .movie-poster {
+  box-shadow: 
+    0 0 30px rgba(var(--focus-ring-color-rgb), 0.6);
+}
+
+.movies-grid .movie-card[data-focusable="true"].dpad-focused .movie-overlay {
+  opacity: 1;
+}
+
+.movies-grid .movie-card[data-focusable="true"].dpad-focused .play-btn {
+  transform: scale(1.1);
+}
+
+/* ============================================
+   SERIES MODAL
+   ============================================ */
+
+.series-modal .season-tab[data-focusable="true"].dpad-focused {
+  background: var(--focus-ring-color);
+  color: white;
+  transform: scale(1.05);
+}
+
+.series-modal .episode-card[data-focusable="true"].dpad-focused {
+  background: linear-gradient(135deg, rgba(var(--focus-ring-color-rgb), 0.25), rgba(var(--focus-ring-color-rgb), 0.1));
+  transform: translateX(10px);
+  box-shadow: 
+    -10px 0 30px rgba(var(--focus-ring-color-rgb), 0.4);
+}
+
+.series-modal .episode-card[data-focusable="true"].dpad-focused .episode-number {
+  background: var(--focus-ring-color);
+  transform: scale(1.1);
+}
+
+/* ============================================
+   PROGRAM GUIDE (EPG)
+   ============================================ */
+
+.program-guide .program-item[data-focusable="true"].dpad-focused {
+  background: linear-gradient(135deg, rgba(var(--focus-ring-color-rgb), 0.3), rgba(var(--focus-ring-color-rgb), 0.1));
+  border: 2px solid var(--focus-ring-color);
+  transform: scale(1.02);
+  z-index: 10;
+}
+
+.program-guide .channel-row[data-focusable="true"].dpad-focused {
+  background: rgba(var(--focus-ring-color-rgb), 0.1);
+  border-left: 4px solid var(--focus-ring-color);
+}
+
+/* ============================================
+   CATEGORIAS DO CATÁLOGO
+   ============================================ */
+
+.category-tabs .category-tab[data-focusable="true"].dpad-focused,
+.category-list .category-item[data-focusable="true"].dpad-focused {
+  background: linear-gradient(135deg, var(--focus-ring-color), rgba(var(--focus-ring-color-rgb), 0.7));
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 
+    0 0 20px rgba(var(--focus-ring-color-rgb), 0.5);
+}
+
+/* Platform Cards na seção de streaming */
+.featured-platforms .platform-card[data-focusable="true"].dpad-focused {
+  transform: scale(1.1);
+  box-shadow: 
+    0 0 0 3px var(--focus-ring-color),
+    0 0 40px rgba(var(--focus-ring-color-rgb), 0.6),
+    0 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   MOVIE CATALOG - HEADER CONTROLS
+   ============================================ */
+
+/* Botões de filtro de conteúdo (Todos, Filmes, Séries) */
+.content-nav .nav-btn[data-focusable="true"].dpad-focused,
+.content-nav .nav-btn[data-focusable="true"]:focus-visible {
+  background: linear-gradient(135deg, rgba(var(--focus-ring-color-rgb), 0.3), rgba(var(--focus-ring-color-rgb), 0.1)) !important;
+  border-color: var(--focus-ring-color) !important;
+  transform: scale(1.08);
+  box-shadow: 
+    0 0 20px rgba(var(--focus-ring-color-rgb), 0.5),
+    inset 0 0 15px rgba(var(--focus-ring-color-rgb), 0.1);
+}
+
+/* Dropdown de categoria */
+.category-dropdown-btn[data-focusable="true"].dpad-focused,
+.category-dropdown-btn[data-focusable="true"]:focus-visible {
+  background: rgba(var(--focus-ring-color-rgb), 0.2) !important;
+  border-color: var(--focus-ring-color) !important;
+  transform: scale(1.05);
+  box-shadow: 
+    0 0 15px rgba(var(--focus-ring-color-rgb), 0.4);
+}
+
+/* Items do dropdown */
+.dropdown-item[data-focusable="true"].dpad-focused,
+.dropdown-item[data-focusable="true"]:focus-visible {
+  background: linear-gradient(135deg, rgba(var(--focus-ring-color-rgb), 0.3), rgba(var(--focus-ring-color-rgb), 0.1)) !important;
+  color: white !important;
+  transform: translateX(5px);
+  box-shadow: 
+    -5px 0 15px rgba(var(--focus-ring-color-rgb), 0.3);
+}
+
+/* Chips de categoria (horizontal scroll) */
+.category-chip[data-focusable="true"].dpad-focused,
+.category-chip[data-focusable="true"]:focus-visible {
+  background: var(--focus-ring-color) !important;
+  color: white !important;
+  transform: scale(1.05);
+  box-shadow: 
+    0 0 20px rgba(var(--focus-ring-color-rgb), 0.5);
+}
+
+/* Botão "Ver todas as categorias" */
+.see-all-categories-btn[data-focusable="true"].dpad-focused,
+.see-all-categories-btn[data-focusable="true"]:focus-visible,
+.see-all-btn[data-focusable="true"].dpad-focused,
+.see-all-btn[data-focusable="true"]:focus-visible {
+  background: rgba(var(--focus-ring-color-rgb), 0.2) !important;
+  border-color: var(--focus-ring-color) !important;
+  transform: scale(1.08);
+  box-shadow: 
+    0 0 20px rgba(var(--focus-ring-color-rgb), 0.5);
+}
+
+/* Botões de navegação do carrossel */
+.carousel-nav[data-focusable="true"].dpad-focused,
+.carousel-nav[data-focusable="true"]:focus-visible {
+  background: rgba(var(--focus-ring-color-rgb), 0.8) !important;
+  transform: scale(1.2);
+  box-shadow: 
+    0 0 25px rgba(var(--focus-ring-color-rgb), 0.7);
+}
+
+/* Botão "Ver mais" no carrossel */
+.load-more-card[data-focusable="true"].dpad-focused,
+.load-more-card[data-focusable="true"]:focus-visible {
+  background: linear-gradient(135deg, rgba(var(--focus-ring-color-rgb), 0.3), rgba(var(--focus-ring-color-rgb), 0.1)) !important;
+  border-color: var(--focus-ring-color) !important;
+  transform: scale(1.05);
+  box-shadow: 
+    0 0 30px rgba(var(--focus-ring-color-rgb), 0.5);
+}
+
+/* Botão de reset/limpar filtros */
+.reset-btn[data-focusable="true"].dpad-focused,
+.reset-btn[data-focusable="true"]:focus-visible {
+  background: var(--focus-ring-color) !important;
+  transform: scale(1.08);
+  box-shadow: 
+    0 0 25px rgba(var(--focus-ring-color-rgb), 0.6);
+}
+
+/* ============================================
+   MODAL DE CATEGORIAS
+   ============================================ */
+
+.categories-modal .category-item[data-focusable="true"].dpad-focused,
+.categories-modal .category-item[data-focusable="true"]:focus-visible {
+  background: linear-gradient(135deg, rgba(var(--focus-ring-color-rgb), 0.3), rgba(var(--focus-ring-color-rgb), 0.15)) !important;
+  border-color: var(--focus-ring-color) !important;
+  transform: scale(1.03);
+  box-shadow: 
+    0 0 20px rgba(var(--focus-ring-color-rgb), 0.4);
+}
+
+/* ============================================
+   MOVIE PLAYER CONTROLS
+   ============================================ */
+
+/* Botão central de play */
+.center-play[data-focusable="true"].dpad-focused,
+.center-play[data-focusable="true"]:focus-visible {
+  transform: scale(1.2);
+  background: rgba(var(--focus-ring-color-rgb), 0.4) !important;
+  box-shadow: 
+    0 0 50px rgba(var(--focus-ring-color-rgb), 0.7),
+    0 0 100px rgba(var(--focus-ring-color-rgb), 0.4);
+}
+
+/* Skip intro */
+.skip-intro-btn[data-focusable="true"].dpad-focused,
+.skip-intro-btn[data-focusable="true"]:focus-visible {
+  background: var(--focus-ring-color) !important;
+  transform: scale(1.1);
+  box-shadow: 
+    0 0 30px rgba(var(--focus-ring-color-rgb), 0.7);
+}
+
+/* Botão de próximo episódio */
+.next-episode-btn[data-focusable="true"].dpad-focused,
+.next-episode-btn[data-focusable="true"]:focus-visible {
+  background: var(--focus-ring-color) !important;
+  transform: scale(1.05);
+  box-shadow: 
+    0 0 30px rgba(var(--focus-ring-color-rgb), 0.7);
+}
+
+/* Botão de dismiss do próximo episódio */
+.next-dismiss-btn[data-focusable="true"].dpad-focused,
+.next-dismiss-btn[data-focusable="true"]:focus-visible {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.2);
+  box-shadow: 
+    0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+/* Dropdown de player externo */
+.external-dropdown button[data-focusable="true"].dpad-focused,
+.external-dropdown button[data-focusable="true"]:focus-visible {
+  background: rgba(var(--focus-ring-color-rgb), 0.3) !important;
+  transform: translateX(5px);
+}
+
+/* Settings dropdown */
+.settings-dropdown select[data-focusable="true"].dpad-focused,
+.settings-dropdown select[data-focusable="true"]:focus-visible,
+.settings-dropdown input[data-focusable="true"].dpad-focused,
+.settings-dropdown input[data-focusable="true"]:focus-visible {
+  border-color: var(--focus-ring-color) !important;
+  box-shadow: 
+    0 0 15px rgba(var(--focus-ring-color-rgb), 0.5);
+}
+
+/* ============================================
+   VIDEO PLAYER CONTROLS
+   ============================================ */
+
+.video-player .control-bar button[data-focusable="true"].dpad-focused {
+  background: rgba(var(--focus-ring-color-rgb), 0.3);
+  transform: scale(1.3);
+  box-shadow: 
+    0 0 30px rgba(var(--focus-ring-color-rgb), 0.6);
+}
+
+.video-player .progress-bar[data-focusable="true"].dpad-focused {
+  transform: scaleY(1.5);
+  box-shadow: 
+    0 0 20px rgba(var(--focus-ring-color-rgb), 0.5);
+}
+
+/* ============================================
+   INDICADOR DE NAVEGAÇÃO (HELPER)
+   ============================================ */
+
+.dpad-navigation-hint {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 12px 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 9999;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  animation: hintFadeIn 0.3s ease forwards;
+  animation-delay: 1s;
+}
+
+@keyframes hintFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.dpad-navigation-hint .hint-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+}
+
+.dpad-navigation-hint .hint-key {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dpad-navigation-hint .hint-key svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Esconde o hint após 5 segundos */
+.dpad-navigation-hint.auto-hide {
+  animation: hintFadeIn 0.3s ease forwards, hintFadeOut 0.3s ease forwards 5s;
+}
+
+@keyframes hintFadeOut {
+  to {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* ============================================
+   ESTADO DESABILITADO
+   ============================================ */
+
+[data-focusable="true"][disabled],
+[data-focusable="true"][data-disabled="true"],
+[data-focusable="true"].disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ============================================
+   SCROLLBAR CUSTOMIZADA PARA NAVEGAÇÃO
+   ============================================ */
+
+.dpad-scroll-container {
+  scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
+}
+
+.dpad-scroll-container > [data-focusable="true"] {
+  scroll-snap-align: start;
+  scroll-margin-top: 100px;
+}
+
+/* ============================================
+   RESPONSIVE - AJUSTES PARA TV/MOBILE
+   ============================================ */
+
+/* Para telas grandes (TV) */
+@media (min-width: 1400px) {
+  :root {
+    --focus-ring-width: 4px;
+    --focus-glow-size: 30px;
+    --focus-scale-card: 1.1;
+  }
+}
+
+/* Para quando o usuário usa controle */
+@media (pointer: coarse) {
+  [data-focusable="true"].dpad-focused::before {
+    --focus-ring-width: 4px;
+  }
+}
+
+/* Desabilita animações para preferência de movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  [data-focusable="true"],
+  [data-focusable="true"]::before {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ============================================
+   FOCUS TRAP PARA MODAIS
+   ============================================ */
+
+.focus-trap-container {
+  position: relative;
+}
+
+.focus-trap-container::before,
+.focus-trap-container::after {
+  content: '';
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+/* ============================================
+   DEBUG MODE (descomente para debug)
+   ============================================ */
+
+/*
+[data-focusable="true"] {
+  outline: 1px dashed rgba(255, 0, 0, 0.3) !important;
+}
+
+[data-focusable="true"].dpad-focused {
+  outline: 2px solid red !important;
+}
+*/
