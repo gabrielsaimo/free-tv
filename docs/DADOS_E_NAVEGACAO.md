@@ -16,9 +16,11 @@
 Os arquivos de playlist estão em:
 ```
 src/assets/
-├── ListaBR01.m3u8  → Usado para CANAIS DE TV
-└── ListaBR02.m3u8  → Usado para FILMES E SÉRIES
+├── ListaBR01.m3u8  → AMBOS usados para FILMES E SÉRIES
+└── ListaBR02.m3u8  → AMBOS usados para FILMES E SÉRIES
 ```
+
+> ⚠️ **Importante:** O parser processa AMBOS os arquivos M3U8 para extrair todos os filmes e séries disponíveis.
 
 ### Formato do M3U8
 Cada entrada no arquivo segue o padrão:
@@ -41,7 +43,7 @@ http://servidor.com/caminho/video.mp4
 
 ### Script Principal: `scripts/parseMovies.ts`
 
-Este script é responsável por processar o arquivo `ListaBR02.m3u8` e gerar os dados de filmes e séries.
+Este script é responsável por processar **AMBOS** os arquivos `ListaBR01.m3u8` e `ListaBR02.m3u8` para gerar os dados de filmes e séries.
 
 #### Execução
 ```bash
@@ -50,12 +52,18 @@ bun run scripts/parseMovies.ts
 
 #### Processo de Extração
 
-**1. Leitura do Arquivo (a partir da linha 2294)**
+**1. Leitura de AMBOS os Arquivos**
 ```typescript
-const content = fs.readFileSync(filePath, 'utf-8');
-const lines = content.split('\n').slice(startLine - 1); // Começa na linha 2294
+const M3U8_FILES = [
+  path.join(__dirname, '../src/assets/ListaBR01.m3u8'),
+  path.join(__dirname, '../src/assets/ListaBR02.m3u8'),
+];
+
+for (const filePath of M3U8_FILES) {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  // Processa todas as linhas de cada arquivo
+}
 ```
-> ⚠️ As primeiras 2293 linhas contêm canais de TV, por isso são ignoradas.
 
 **2. Parse de cada entrada**
 ```typescript
@@ -76,71 +84,112 @@ for (const line of lines) {
 }
 ```
 
-**3. Categorias Ignoradas**
-O script ignora categorias que não são filmes/séries:
+**3. Categorias Ignoradas (Canais de TV ao Vivo)**
+O script ignora categorias que são canais de TV ao vivo:
 ```typescript
-const IGNORED_CATEGORIES = [
-  'Área do cliente',
-  'A FAZENDA',
-  'BBB 2026',
-  '⚽ESPORTE',
+const TV_CHANNELS_CATEGORIES = [
+  'CANAIS:',
+  '⏺️ ABERTO',
+  '⏺️ BAND - SBT',
   '⏺️ GLOBO',
+  '⏺️ RECORD TV',
+  '⏺️ HBO',
+  '⏺️ TELECINE',
+  '⏺️ DISCOVERY',
+  '⏺️ CINE SKY',
+  '⏺️ FILMES E SERIES',
   '⏺️ NOTICIA',
-  // ... outras
+  '⏺️ NBA LEAGUE',
+  '⏺️ RUNTIME',
+  '⛄ INFANTIS',
+  '⛰️ DOCUMENTARIO',
+  '✝️ RELIGIOSOS',
+  '⚽ COPINHA',
+  'JOGOS DE HOJE',
+  'RÁDIOS',
+  'A FAZENDA',
+  'BBB 20',
+  'ESTRELA DA CASA',
+  'Área do cliente',
 ];
 ```
 
-**4. Categorias Adultas (requer desbloqueio)**
+**4. URLs de Streaming ao Vivo Filtradas**
+URLs que terminam com `.ts` são streams MPEG-TS (transmissões ao vivo) e são automaticamente filtradas:
 ```typescript
-const ADULT_CATEGORIES = [
-  '(XXXX) ADULTOS',
-  '♦️[HOT] Adultos ❌❤️',
-  '♦️[HOT] Adultos ❌❤️ [Bella da Semana]',
-  '♦️[HOT] Adultos ❌❤️ [LEGENDADO]',
+function isLiveStreamURL(url: string): boolean {
+  // URLs .ts são streams ao vivo (MPEG-TS), não filmes/séries
+  return url.toLowerCase().endsWith('.ts');
+}
+```
+
+**5. Categorias Adultas (requer desbloqueio)**
+```typescript
+const ADULT_KEYWORDS = [
+  'ADULTOS',
+  '[HOT]',
+  '❌❤️',
+  'XXX',
+  '[Adulto]',
 ];
 ```
 
-**5. Detecção de Tipo (Filme vs Série)**
+**6. Detecção de Tipo (Filme vs Série)**
 ```typescript
 // Indicadores de série na categoria
-const SERIES_INDICATORS = [
-  'series', 'série', 'novelas', 'doramas', 
-  'programas', 'stand up', '24h'
+const SERIES_CATEGORY_KEYWORDS = [
+  'series |', 'series|', 'séries', 'novelas', 
+  'doramas', 'dorama', '24h animes', '24h desenhos',
+  '24h series', 'programas de tv', 'stand up'
 ];
 
 // Indicadores de série no nome (padrões de episódio)
-const isSeries = 
-  /S\d+\s*E\d+/i.test(name) ||      // S01E05
-  /T\d+\s*E\d+/i.test(name) ||      // T01E05
-  /\d+\s*x\s*\d+/i.test(name) ||    // 1x05
-  /Temporada\s*\d+/i.test(name);    // Temporada 1
+const EPISODE_PATTERNS = [
+  /S\d+\s*E\d+/i,           // S01E05
+  /T\d+\s*E\d+/i,           // T01E05
+  /\d+\s*x\s*\d+/i,         // 1x05
+  /Temporada\s*\d+/i,       // Temporada 1
+  /Season\s*\d+/i,          // Season 1
+  /Temp\.?\s*\d+/i,         // Temp 1
+];
 ```
 
 #### Saída Gerada
 
+**Estatísticas atuais:**
+- 📊 **541.524** items únicos processados
+- 🎬 **43.869** filmes
+- 📺 **497.655** séries/episódios
+- 🔞 **10.450** conteúdo adulto
+- 📁 **103** categorias
+
 **Arquivos JSON por categoria em `/public/data/`:**
 ```
 public/data/
-├── categories.json          → Índice de todas as categorias
+├── categories.json          → Índice de todas as categorias (103)
 ├── lancamentos.json         → Filmes de lançamento
-├── netflix.json             → Séries Netflix
+├── netflix.json             → Séries Netflix (58.757 items)
 ├── prime-video.json         → Séries Prime Video
+├── amazon-prime-video.json  → Amazon Prime Video
 ├── disney.json              → Disney+
-├── max.json                 → Max (HBO)
-├── novelas.json             → Novelas
+├── disney-plus.json         → Disney Plus
+├── max.json                 → Max (HBO) (30.762 items)
+├── globoplay.json           → Globoplay (34.467 items)
+├── novelas.json             → Novelas (90.265 items)
+├── legendadas.json          → Séries Legendadas (56.220 items)
 ├── hot-adultos.json         → Conteúdo adulto
 └── ... (outras categorias)
 ```
 
 **Arquivo TypeScript: `/src/data/movies.ts`**
 ```typescript
-// Dados iniciais (carregamento rápido)
+// Dados iniciais (carregamento rápido - 880 items)
 export const initialMoviesData: MovieWithAdult[] = [...];
 
 // Índice de categorias
 export const categoryIndex: CategoryIndex[] = [
-  { name: "Lançamentos", file: "lancamentos.json", count: 150, isAdult: false },
-  { name: "Netflix", file: "netflix.json", count: 500, isAdult: false },
+  { name: "🎬 Lançamentos", file: "lancamentos.json", count: 333, isAdult: false },
+  { name: "📺 Netflix", file: "netflix.json", count: 58757, isAdult: true },
   // ...
 ];
 
@@ -150,6 +199,25 @@ export async function loadCategory(categoryName: string): Promise<Movie[]> {
   return response.json();
 }
 ```
+
+#### Top 25 Categorias por Quantidade
+| # | Categoria | Items |
+|---|-----------|-------|
+| 1 | 📺 Novelas | 90.265 |
+| 2 | 📺 Netflix | 58.757 |
+| 3 | 📺 Legendadas | 56.220 |
+| 4 | 📺 Globoplay | 34.467 |
+| 5 | 📺 Max | 30.762 |
+| 6 | 🎬 Outras Produtoras | 23.972 |
+| 7 | 📺 Outras Produtoras | 23.782 |
+| 8 | 📺 Amazon Prime Video | 19.255 |
+| 9 | 📺 Prime Video | 17.972 |
+| 10 | 📺 Disney+ | 14.137 |
+| 11 | 📺 Disney Plus | 14.066 |
+| 12 | 📺 Dorama | 12.075 |
+| 13 | 📺 Doramas | 11.631 |
+| 14 | 📺 Crunchyroll | 11.266 |
+| 15 | 📺 Paramount+ | 9.468 |
 
 ---
 

@@ -1,11 +1,5 @@
-import { useState, useCallback, useEffect, createContext, useContext } from 'react';
+import { useState, useCallback, useEffect, createContext, useContext, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Sidebar } from './components/Sidebar';
-import { VideoPlayer } from './components/VideoPlayer';
-import { MoviePlayer } from './components/MoviePlayer';
-import { ProgramGuide } from './components/ProgramGuide';
-import { MovieCatalog } from './components/MovieCatalog';
-import { HomeSelector } from './components/HomeSelector';
 import { AppHeader } from './components/AppHeader';
 import { Toast } from './components/Toast';
 import { getAllChannels } from './data/channels';
@@ -14,6 +8,31 @@ import type { Movie } from './types/movie';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import './App.css';
+
+// Lazy loading dos componentes pesados
+const Sidebar = lazy(() => import('./components/Sidebar').then(m => ({ default: m.Sidebar })));
+const VideoPlayer = lazy(() => import('./components/VideoPlayer').then(m => ({ default: m.VideoPlayer })));
+const MoviePlayer = lazy(() => import('./components/MoviePlayer').then(m => ({ default: m.MoviePlayer })));
+const ProgramGuide = lazy(() => import('./components/ProgramGuide').then(m => ({ default: m.ProgramGuide })));
+const MovieCatalog = lazy(() => import('./components/MovieCatalog').then(m => ({ default: m.MovieCatalog })));
+const HomeSelector = lazy(() => import('./components/HomeSelector').then(m => ({ default: m.HomeSelector })));
+
+// Loading fallback
+const LoadingFallback = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    height: '100vh',
+    background: 'var(--bg-primary, #0a0a0a)',
+    color: 'var(--text-primary, #fff)'
+  }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📺</div>
+      <div>Carregando...</div>
+    </div>
+  </div>
+);
 
 interface ToastState {
   message: string;
@@ -46,7 +65,11 @@ function HomePage() {
     navigate(`/${mode}`);
   };
 
-  return <HomeSelector onSelect={handleSelect} />;
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <HomeSelector onSelect={handleSelect} />
+    </Suspense>
+  );
 }
 
 // Componente de TV
@@ -165,36 +188,37 @@ function TVPage() {
       {/* Header Global */}
       {!isTheaterMode && <AppHeader transparent isAdultUnlocked={isAdultUnlocked} onUnlockAdult={unlockAdult} />}
 
-      <div className="tv-layout">
-        {/* Mobile Tab Navigation */}
-        <nav className="mobile-tabs">
-          <button
-            className={`mobile-tab ${mobileTab === 'player' ? 'active' : ''}`}
-            onClick={() => setMobileTab('player')}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="2" y="3" width="20" height="14" rx="2" />
-              <path d="M8 21h8M12 17v4" />
-            </svg>
-            <span>Player</span>
-          </button>
-          <button
-            className={`mobile-tab ${mobileTab === 'channels' ? 'active' : ''}`}
-            onClick={() => setMobileTab('channels')}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <span>Canais</span>
-            <span className="tab-badge">{channels.length}</span>
-          </button>
-        </nav>
+      <Suspense fallback={<LoadingFallback />}>
+        <div className="tv-layout">
+          {/* Mobile Tab Navigation */}
+          <nav className="mobile-tabs">
+            <button
+              className={`mobile-tab ${mobileTab === 'player' ? 'active' : ''}`}
+              onClick={() => setMobileTab('player')}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+              </svg>
+              <span>Player</span>
+            </button>
+            <button
+              className={`mobile-tab ${mobileTab === 'channels' ? 'active' : ''}`}
+              onClick={() => setMobileTab('channels')}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span>Canais</span>
+              <span className="tab-badge">{channels.length}</span>
+            </button>
+          </nav>
 
-        {/* Desktop Sidebar */}
-        <div className={`sidebar-wrapper desktop-only ${isMobileMenuOpen ? 'open' : ''}`}>
-          <Sidebar
-            channels={channels}
-            activeChannelId={selectedChannel?.id || null}
+          {/* Desktop Sidebar */}
+          <div className={`sidebar-wrapper desktop-only ${isMobileMenuOpen ? 'open' : ''}`}>
+            <Sidebar
+              channels={channels}
+              activeChannelId={selectedChannel?.id || null}
             favorites={favorites}
             onSelectChannel={handleSelectChannel}
             onToggleFavorite={handleToggleFavorite}
@@ -263,7 +287,8 @@ function TVPage() {
           onClose={() => setIsGuideOpen(false)}
           isOpen={isGuideOpen}
         />
-      </div>
+        </div>
+      </Suspense>
 
       {toast && (
         <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />
@@ -302,9 +327,11 @@ function MoviesPage() {
     return (
       <div className="page-container movies-page playing">
         <AppHeader showBackButton onBack={handleBackFromMovie} title={selectedMovie.name} isAdultUnlocked={isAdultUnlocked} onUnlockAdult={unlockAdult} />
-        <div className="movie-player-container">
-          <MoviePlayer movie={selectedMovie} onBack={handleBackFromMovie} />
-        </div>
+        <Suspense fallback={<LoadingFallback />}>
+          <div className="movie-player-container">
+            <MoviePlayer movie={selectedMovie} onBack={handleBackFromMovie} />
+          </div>
+        </Suspense>
         {toast && (
           <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />
         )}
@@ -315,14 +342,16 @@ function MoviesPage() {
   return (
     <div className="page-container movies-page">
       <AppHeader isAdultUnlocked={isAdultUnlocked} onUnlockAdult={unlockAdult} />
-      <div className="catalog-container">
-        <MovieCatalog
-          onSelectMovie={handleSelectMovie}
-          activeMovieId={null}
-          onBack={handleBackFromCatalog}
-          isAdultUnlocked={isAdultUnlocked}
-        />
-      </div>
+      <Suspense fallback={<LoadingFallback />}>
+        <div className="catalog-container">
+          <MovieCatalog
+            onSelectMovie={handleSelectMovie}
+            activeMovieId={null}
+            onBack={handleBackFromCatalog}
+            isAdultUnlocked={isAdultUnlocked}
+          />
+        </div>
+      </Suspense>
       {toast && (
         <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}

@@ -33,6 +33,81 @@ const ITEMS_PER_PAGE = 20;
 const CATEGORIES_PER_LOAD = 5;
 const SEARCH_RESULTS_PER_PAGE = 30;
 
+// ============================================================
+// CATEGORIAS PRINCIPAIS - Streamings e Destaques (exibidos em cards)
+// ============================================================
+const FEATURED_CATEGORIES = [
+  '🎬 Lançamentos',
+  '📺 Netflix',
+  '📺 Prime Video',
+  '📺 Disney+',
+  '📺 Max',
+  '📺 Apple TV+',
+  '📺 Paramount+',
+  '📺 Globoplay',
+  '📺 Star+',
+  '📺 Crunchyroll',
+  '📺 Discovery+',
+  '🎬 4K UHD',
+  '⭐ Sugestão da Semana',
+];
+
+// Logos/cores das plataformas de streaming com SVG icons REAIS
+const PLATFORM_STYLES: Record<string, { color: string; icon: React.ReactNode }> = {
+  '📺 Netflix': { 
+    color: '#E50914', 
+    icon: <svg viewBox="0 0 111 30" fill="#E50914" width="36" height="24"><path d="M105.062 14.28L111 30c-1.75-.25-3.5-.42-5.25-.42-1.75 0-3.5.17-5.25.42l-3.25-9.17-3.25 9.17c-1.75-.25-3.5-.42-5.25-.42-1.75 0-3.5.17-5.25.42l5.94-15.72L83.75 0c1.75.25 3.5.42 5.25.42 1.75 0 3.5-.17 5.25-.42l3.25 8.86 3.25-8.86c1.75.25 3.5.42 5.25.42 1.75 0 3.5-.17 5.25-.42l-5.94 14.28zM90.28 0v.14c-.17 0-.33.01-.5.02V30h5.25V0h-4.75zM76.46 0c-1.75.25-3.5.42-5.25.42-1.75 0-3.5-.17-5.25-.42v17.17c0 2.5-.56 4.31-1.67 5.44-1.11 1.14-2.78 1.71-5 1.71-2.22 0-3.89-.57-5-1.71-1.11-1.14-1.67-2.94-1.67-5.44V0c-1.75.25-3.5.42-5.25.42-1.75 0-3.5-.17-5.25-.42v17.17c0 4.44 1.28 7.86 3.83 10.28 2.56 2.42 6.11 3.63 10.67 3.63 4.56 0 8.11-1.21 10.67-3.63 2.56-2.42 3.83-5.83 3.83-10.28V0h-.67zM26.32 0v17.03l-9.25-17.03c-1.75.25-3.5.42-5.25.42-1.75 0-3.5-.17-5.25-.42v30c1.75-.25 3.5-.42 5.25-.42 1.75 0 3.5.17 5.25.42V12.97l9.25 17.03c1.75-.25 3.5-.42 5.25-.42 1.75 0 3.5.17 5.25.42V0c-1.75.25-3.5.42-5.25.42-1.75 0-3.5-.17-5.25-.42z"/></svg>
+  },
+  '📺 Prime Video': { 
+    color: '#00A8E1', 
+    icon: <svg viewBox="0 0 24 24" fill="#00A8E1" width="32" height="32"><path d="M.045 18.02c.072-.116.187-.124.348-.022 3.636 2.11 7.594 3.166 11.87 3.166 2.852 0 5.668-.533 8.447-1.595l.315-.14c.138-.06.234-.1.293-.13.226-.088.39-.046.503.14.086.14.065.276-.064.415-.141.127-.333.266-.575.416-1.454.91-3.074 1.61-4.86 2.098a18.64 18.64 0 0 1-5.357.73c-2.236 0-4.35-.355-6.343-1.063-1.993-.71-3.803-1.746-5.424-3.11-.09-.08-.135-.17-.135-.27s.03-.17.09-.237l-.108.602zm6.629-3.09V9.27c0-.44.1-.8.3-1.08.2-.28.53-.42.98-.42.46 0 .8.14 1.02.42.22.28.33.64.33 1.08v5.66c0 .44-.11.8-.33 1.08-.22.28-.56.42-1.02.42-.45 0-.78-.14-.98-.42-.2-.28-.3-.64-.3-1.08zm4.66 0V9.27c0-.44.1-.8.3-1.08.2-.28.53-.42.98-.42.46 0 .8.14 1.02.42.22.28.33.64.33 1.08v5.66c0 .44-.11.8-.33 1.08-.22.28-.56.42-1.02.42-.45 0-.78-.14-.98-.42-.2-.28-.3-.64-.3-1.08zm-5.96-7.07c-.7 0-1.32.13-1.86.39-.54.26-.96.62-1.26 1.08-.3.46-.45 1-.45 1.62 0 .58.13 1.08.39 1.5.26.42.64.75 1.14.99.5.24 1.1.36 1.8.36h.48c.16 0 .28.12.28.28v.72c0 .16-.12.28-.28.28h-.48c-1.24 0-2.22-.3-2.94-.9-.72-.6-1.08-1.46-1.08-2.58 0-.86.2-1.6.6-2.22.4-.62.96-1.1 1.68-1.44.72-.34 1.54-.51 2.46-.51.48 0 .94.04 1.38.12.44.08.82.2 1.14.36l-.36 1.26c-.54-.24-1.2-.36-1.98-.36h.02zm17.07 7.68c-.2-.26-.34-.12-.26.04.32.55 1.04 1.8.71 2.1-.33.3-1.86.22-2.5.11-.2-.04-.23.15-.05.27.59.43 1.92.89 2.58.76.67-.14 1.05-.64 1-1.34-.03-.42-.23-1.23-.48-1.94z"/></svg>
+  },
+  '📺 Disney+': { 
+    color: '#113CCF', 
+    icon: <svg viewBox="0 0 107.59 39.43" fill="#113CCF" width="36" height="24"><path d="M32.62,23.8h.19l2.87,8h-5.93Zm19.89,12.33h0a35,35,0,0,1-5.58.48c-4.5,0-7.24-1.92-7.24-6.49,0-4.14,2.53-6.59,7.24-6.59A32,32,0,0,1,52.51,24l-.2-3.74a43.5,43.5,0,0,0-5.47-.36c-7.52,0-12.83,4.13-12.83,10.77,0,6.24,4.69,10.08,11.59,10.08a50.43,50.43,0,0,0,7.12-.62Zm6.18-26.94c0,3,.65,4.18,3.53,4.18h3.24V9.63H64.22C54.49,9.63,50.25,14,50.25,23.8c0,.89,0,1.73.08,2.54h4.85c-.11-1-.18-2.07-.18-3.21,0-6.86,2.64-10,9.48-10h1.74V9.37H64.48c-3.77,0-5.65,1-5.79-3.57Zm37.56,2.42H93.49L87,27.71l-6-16.1H78.14V36h4V18l6.54,18H92l6.27-18V36h4ZM44.75,7.3V3H33.62l-5.87,16.81L21.88,3H10.75V7.3h8.17L8.81,36.13H14L21.5,16.65h.18L29.18,36.13h5.23L24.31,7.3Zm34.51-7.3L64.22,0l-.23,3.63h8.87V3.37l6.4.26Z"/><path d="M107.59,36.66a2.77,2.77,0,1,1-2.77-2.77,2.77,2.77,0,0,1,2.77,2.77Zm-4.82,0a2.06,2.06,0,1,0,2.05-2.21A2.08,2.08,0,0,0,102.77,36.66Zm1.64,1.43H103.6V35.32a4.86,4.86,0,0,1,.94-.08,1.54,1.54,0,0,1,.88.2.73.73,0,0,1,.25.58.66.66,0,0,1-.53.62v0c.25.08.39.31.47.69a2.16,2.16,0,0,0,.19.69h-.83a2.35,2.35,0,0,1-.21-.67c-.05-.3-.22-.44-.56-.44h-.27Zm0-1.54h.27c.34,0,.63-.11.63-.4s-.16-.41-.58-.41a1.54,1.54,0,0,0-.32,0Z"/></svg>
+  },
+  '📺 Max': { 
+    color: '#002BE7', 
+    icon: <svg viewBox="0 0 48 16" fill="#fff" width="42" height="20"><path d="M4 2h3.5l2.5 6.5L12.5 2H16v12h-3V7l-3 7H8l-3-7v7H2V2h2zm16 0h4l4 12h-3.5l-.7-2.5h-3.6l-.7 2.5H16l4-12zm1.2 7h2.6l-1.3-4.5-1.3 4.5zM28 2h3.5l2.5 3.5L36.5 2H40l-4.5 6 4.8 6h-3.8l-2.7-3.8L31 14h-3.5l4.8-6L28 2z"/></svg>
+  },
+  '📺 Apple TV+': { 
+    color: '#000000', 
+    icon: <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+  },
+  '📺 Paramount+': { 
+    color: '#0064FF', 
+    icon: <svg viewBox="0 0 24 24" fill="#0064FF" width="32" height="32"><path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 3L7.5 16h2.25l.75-2.25h3l.75 2.25h2.25L12 5zm0 3.75L13.5 13h-3l1.5-4.25z"/></svg>
+  },
+  '📺 Globoplay': { 
+    color: '#FF5A00', 
+    icon: <svg viewBox="0 0 24 24" fill="#FF5A00" width="32" height="32"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z"/><circle cx="12" cy="12" r="4"/></svg>
+  },
+  '📺 Star+': { 
+    color: '#C724B1', 
+    icon: <svg viewBox="0 0 24 24" fill="#C724B1" width="28" height="28"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+  },
+  '📺 Crunchyroll': { 
+    color: '#F47521', 
+    icon: <svg viewBox="0 0 24 24" fill="#F47521" width="28" height="28"><path d="M2.933 13.467a10.56 10.56 0 0 1-.6-3.467C2.333 4.477 6.81 0 12.333 0S22.333 4.477 22.333 10c0 3.38-1.68 6.37-4.25 8.18.93-1.37 1.47-3.02 1.47-4.8 0-4.693-3.807-8.5-8.5-8.5s-8.5 3.807-8.5 8.5c0 .036.002.072.002.107h.378zm5.6-3.6a4.133 4.133 0 1 0 4.134-4.134 4.133 4.133 0 0 0-4.134 4.134zm2.067 0a2.067 2.067 0 1 1 2.067 2.066 2.067 2.067 0 0 1-2.067-2.066z"/></svg>
+  },
+  '📺 Discovery+': { 
+    color: '#003B6F', 
+    icon: <svg viewBox="0 0 24 24" fill="#003B6F" width="28" height="28"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M9 8v8l7-4z"/></svg>
+  },
+  '🎬 Lançamentos': { 
+    color: '#DC2626', 
+    icon: <svg viewBox="0 0 24 24" fill="#DC2626" width="28" height="28"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4zm-6.75 11.25L10 18l-1.25-2.75L6 14l2.75-1.25L10 10l1.25 2.75L14 14l-2.75 1.25zm5.69-3.31L16 14l-.94-2.06L13 11l2.06-.94L16 8l.94 2.06L19 11l-2.06.94z"/></svg>
+  },
+  '🎬 4K UHD': { 
+    color: '#8B5CF6', 
+    icon: <svg viewBox="0 0 24 24" fill="#8B5CF6" width="28" height="28"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm2-6h4c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1h-4V9zm1.5 4.5h2v-3h-2v3z"/></svg>
+  },
+  '⭐ Sugestão da Semana': { 
+    color: '#F59E0B', 
+    icon: <svg viewBox="0 0 24 24" fill="#F59E0B" width="28" height="28"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+  },
+};
+
 // Cache global para parsing de séries
 const seriesCache = new Map<string, { baseName: string; season: number; episode: number } | null>();
 
@@ -778,6 +853,7 @@ export function MovieCatalog({ onSelectMovie, isAdultUnlocked = false }: MovieCa
   const [selectedSeries, setSelectedSeries] = useState<GroupedSeries | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [visibleCategories, setVisibleCategories] = useState(CATEGORIES_PER_LOAD);
+  const [showAllCategoriesModal, setShowAllCategoriesModal] = useState(false);
   const [loadedCategoryData, setLoadedCategoryData] = useState<Map<string, MovieWithAdult[]>>(new Map());
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<{ series: GroupedSeries[]; standalone: Movie[] } | null>(null);
@@ -809,6 +885,80 @@ export function MovieCatalog({ onSelectMovie, isAdultUnlocked = false }: MovieCa
       return true;
     });
   }, [availableCategoryIndex, contentFilter, categoryTypeInfo]);
+
+  // Separar categorias principais (streamings) das outras
+  const { featuredCategories, otherCategories } = useMemo(() => {
+    const featured: CategoryIndex[] = [];
+    const others: CategoryIndex[] = [];
+    
+    for (const cat of filteredCategoryIndex) {
+      if (FEATURED_CATEGORIES.includes(cat.name)) {
+        featured.push(cat);
+      } else {
+        others.push(cat);
+      }
+    }
+    
+    // Ordena as principais pela ordem definida em FEATURED_CATEGORIES
+    featured.sort((a, b) => {
+      const indexA = FEATURED_CATEGORIES.indexOf(a.name);
+      const indexB = FEATURED_CATEGORIES.indexOf(b.name);
+      return indexA - indexB;
+    });
+    
+    return { featuredCategories: featured, otherCategories: others };
+  }, [filteredCategoryIndex]);
+
+  // Agrupa outras categorias por tipo para o modal
+  const groupedOtherCategories = useMemo(() => {
+    const groups: Record<string, CategoryIndex[]> = {
+      'Gêneros': [],
+      'Plataformas': [],
+      'Especiais': [],
+      'Outros': [],
+    };
+    
+    for (const cat of otherCategories) {
+      const name = cat.name.toLowerCase();
+      
+      // Plataformas de streaming restantes
+      if (name.includes('📺') || name.includes('directv') || name.includes('funimation') || 
+          name.includes('sbt') || name.includes('claro') || name.includes('univer') || 
+          name.includes('brasil paralelo') || name.includes('play plus') || name.includes('pluto')) {
+        groups['Plataformas'].push(cat);
+      }
+      // Gêneros de filmes
+      else if (name.includes('🎬') && (
+        name.includes('ação') || name.includes('comédia') || name.includes('drama') ||
+        name.includes('terror') || name.includes('romance') || name.includes('suspense') ||
+        name.includes('animação') || name.includes('aventura') || name.includes('fantasia') ||
+        name.includes('ficção') || name.includes('crime') || name.includes('guerra') ||
+        name.includes('documentário') || name.includes('família') || name.includes('faroeste')
+      )) {
+        groups['Gêneros'].push(cat);
+      }
+      // Coleções e especiais
+      else if (name.includes('coleção') || name.includes('oscar') || name.includes('marvel') ||
+               name.includes('nacionais') || name.includes('legendados') || name.includes('religiosos') ||
+               name.includes('infantil') || name.includes('dublagem')) {
+        groups['Especiais'].push(cat);
+      }
+      // Séries específicas (Novelas, Doramas, etc)
+      else if (name.includes('novela') || name.includes('dorama') || name.includes('legendadas') ||
+               name.includes('programas') || name.includes('shows') || name.includes('stand up')) {
+        groups['Plataformas'].push(cat);
+      }
+      // Resto
+      else {
+        groups['Outros'].push(cat);
+      }
+    }
+    
+    // Remove grupos vazios
+    return Object.fromEntries(
+      Object.entries(groups).filter(([, cats]) => cats.length > 0)
+    );
+  }, [otherCategories]);
 
   // Obter tipo predominante de uma categoria para colorir
   const getCategoryType = useCallback((catName: string): 'movies' | 'series' | 'mixed' | 'unknown' => {
@@ -916,23 +1066,55 @@ export function MovieCatalog({ onSelectMovie, isAdultUnlocked = false }: MovieCa
           return name.includes(query);
         });
         
-        // Se não achou muito, carrega mais categorias
-        if (moviesToSearch.length < 50) {
-          const categoriesToLoad = availableCategoryIndex.slice(0, 10);
+        // Também busca nos dados já carregados em memória
+        loadedCategoryData.forEach((movies) => {
+          const filtered = movies.filter(m => {
+            const name = m.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            return name.includes(query);
+          });
+          moviesToSearch.push(...filtered);
+        });
+        
+        // Remove duplicatas por URL
+        const seenUrls = new Set<string>();
+        moviesToSearch = moviesToSearch.filter(m => {
+          if (seenUrls.has(m.url)) return false;
+          seenUrls.add(m.url);
+          return true;
+        });
+        
+        // Se não achou, carrega as 20 principais categorias (incluindo Netflix, Prime, etc)
+        if (moviesToSearch.length < 20) {
+          const categoriesToLoad = availableCategoryIndex.slice(0, 25);
           for (const cat of categoriesToLoad) {
             if (!loadedCategoryData.has(cat.name)) {
-              const movies = await loadCategory(cat.name);
-              setLoadedCategoryData(prev => {
-                const newMap = new Map(prev);
-                newMap.set(cat.name, movies);
-                return newMap;
-              });
-              
-              const filtered = movies.filter(m => {
-                const name = m.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                return name.includes(query);
-              });
-              moviesToSearch.push(...filtered);
+              try {
+                const movies = await loadCategory(cat.name);
+                setLoadedCategoryData(prev => {
+                  const newMap = new Map(prev);
+                  newMap.set(cat.name, movies);
+                  return newMap;
+                });
+                
+                const filtered = movies.filter(m => {
+                  const name = m.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                  return name.includes(query);
+                });
+                
+                // Adiciona sem duplicatas
+                for (const m of filtered) {
+                  if (!seenUrls.has(m.url)) {
+                    seenUrls.add(m.url);
+                    moviesToSearch.push(m);
+                  }
+                }
+                
+                // Se já encontrou resultados suficientes, para de carregar
+                if (moviesToSearch.length >= 50) break;
+              } catch (e) {
+                // Ignora erros de carregamento de categoria
+                console.log(`Erro ao carregar categoria ${cat.name}:`, e);
+              }
             }
           }
         }
@@ -1248,6 +1430,53 @@ export function MovieCatalog({ onSelectMovie, isAdultUnlocked = false }: MovieCa
               <HeroBanner movie={featuredContent} onSelect={handleMovieSelect} />
             )}
             
+            {/* Cards de Categorias Principais (Streamings) */}
+            <section className="featured-categories-section">
+              <div className="section-header">
+                <h2>
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                  </svg>
+                  Plataformas de Streaming
+                </h2>
+                <button 
+                  className="see-all-categories-btn"
+                  onClick={() => setShowAllCategoriesModal(true)}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                    <path d="M4 6h16v2H4zm4 5h12v2H8zm6 5h6v2h-6z"/>
+                  </svg>
+                  Todas as Categorias ({filteredCategoryIndex.length})
+                </button>
+              </div>
+              
+              <div className="featured-categories-grid">
+                {featuredCategories.map(cat => {
+                  const style = PLATFORM_STYLES[cat.name] || { 
+                    color: '#6B7280', 
+                    icon: <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                  };
+                  return (
+                    <button
+                      key={cat.name}
+                      className="platform-card"
+                      onClick={() => handleCategoryClick(cat.name)}
+                      style={{ '--platform-color': style.color } as React.CSSProperties}
+                    >
+                      <div className="platform-icon">
+                        {style.icon}
+                      </div>
+                      <div className="platform-info">
+                        <span className="platform-name">{cat.name.replace(/^[📺🎬⭐]\s*/, '')}</span>
+                        <span className="platform-count">{cat.count.toLocaleString('pt-BR')} títulos</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+            
+            {/* Carrosséis de Conteúdo */}
             <div className="carousels-container">
               {filteredCategoryIndex.slice(0, visibleCategories).map((cat, index) => (
                 <LazyCategoryRowAsync
@@ -1272,6 +1501,75 @@ export function MovieCatalog({ onSelectMovie, isAdultUnlocked = false }: MovieCa
           </>
         )}
       </main>
+
+      {/* Modal de Todas as Categorias */}
+      {showAllCategoriesModal && (
+        <div className="categories-modal-overlay" onClick={() => setShowAllCategoriesModal(false)}>
+          <div className="categories-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                  <path d="M4 6h16v2H4zm4 5h12v2H8zm6 5h6v2h-6z"/>
+                </svg>
+                Todas as Categorias
+              </h2>
+              <button className="modal-close" onClick={() => setShowAllCategoriesModal(false)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="modal-content">
+              {/* Categorias Principais */}
+              <div className="category-group">
+                <h3>
+                  <span className="group-icon">⭐</span>
+                  Principais
+                </h3>
+                <div className="category-group-items">
+                  {featuredCategories.map(cat => (
+                    <button
+                      key={cat.name}
+                      className="category-item"
+                      onClick={() => { handleCategoryClick(cat.name); setShowAllCategoriesModal(false); }}
+                    >
+                      <span className="category-name">{cat.name}</span>
+                      <span className="category-count">{cat.count.toLocaleString('pt-BR')}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Outras Categorias Agrupadas */}
+              {Object.entries(groupedOtherCategories).map(([groupName, cats]) => (
+                <div key={groupName} className="category-group">
+                  <h3>
+                    <span className="group-icon">
+                      {groupName === 'Gêneros' ? '🎭' : 
+                       groupName === 'Plataformas' ? '📺' : 
+                       groupName === 'Especiais' ? '✨' : '📁'}
+                    </span>
+                    {groupName}
+                  </h3>
+                  <div className="category-group-items">
+                    {cats.map(cat => (
+                      <button
+                        key={cat.name}
+                        className="category-item"
+                        onClick={() => { handleCategoryClick(cat.name); setShowAllCategoriesModal(false); }}
+                      >
+                        <span className="category-name">{cat.name}</span>
+                        <span className="category-count">{cat.count.toLocaleString('pt-BR')}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="catalog-footer">
