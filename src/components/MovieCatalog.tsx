@@ -7,7 +7,7 @@ import {
   type MovieWithAdult,
   type CategoryIndex
 } from '../data/movies';
-import { searchImage } from '../services/imageService';
+import { searchImage, searchRating, searchMovieDetails, searchCertification, type MovieDetails } from '../services/imageService';
 import type { SeriesEpisodeInfo } from './MoviePlayer';
 import './MovieCatalog.css';
 
@@ -333,7 +333,37 @@ const MovieCard = memo(function MovieCard({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [rating, setRating] = useState<number | null>(movie.rating ?? null);
+  const [certification, setCertification] = useState<string | null>(null);
+  const [tmdbPoster, setTmdbPoster] = useState<string | null>(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Busca rating, classificação e imagem do TMDB - executa apenas uma vez
+  useEffect(() => {
+    if (dataLoaded) return;
+    
+    const loadData = async () => {
+      try {
+        // Busca rating, classificação e imagem em paralelo
+        const [ratingResult, certResult, imageResult] = await Promise.all([
+          rating === null ? searchRating(movie.name, movie.type as 'movie' | 'series') : Promise.resolve(rating),
+          searchCertification(movie.name, movie.type as 'movie' | 'series'),
+          searchImage(movie.name, movie.type as 'movie' | 'series')
+        ]);
+        
+        if (ratingResult !== null) setRating(ratingResult);
+        if (certResult) setCertification(certResult);
+        if (imageResult) setTmdbPoster(imageResult);
+      } catch {
+        // Ignora erros silenciosamente
+      } finally {
+        setDataLoaded(true);
+      }
+    };
+    
+    loadData();
+  }, [movie.name, movie.type, rating, dataLoaded]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -386,20 +416,31 @@ const MovieCard = memo(function MovieCard({
     >
       <div className="movie-poster">
         <LazyImage 
-          src={movie.logo} 
+          src={tmdbPoster || movie.logo} 
           alt={movie.name}
           fallbackText={movie.name.substring(0, 2)}
         />
+        
+        {/* Badge de Rating IMDB/TMDB */}
+        {rating !== null && rating > 0 && (
+          <div className={`rating-badge ${rating >= 7 ? 'high' : rating >= 5 ? 'medium' : 'low'}`}>
+            <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            <span>{rating.toFixed(1)}</span>
+          </div>
+        )}
         
         {/* Overlay sempre visível quando focado via D-pad */}
         {(isHovered || isFocused) && (
           <div className="movie-overlay">
             <div className="overlay-content">
-              <button className="play-btn" tabIndex={-1}>
+              <div className="info-btn" tabIndex={-1}>
                 <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z"/>
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
                 </svg>
-              </button>
+                <span>Ver detalhes</span>
+              </div>
             </div>
             <div className="overlay-gradient" />
           </div>
@@ -409,6 +450,13 @@ const MovieCard = memo(function MovieCard({
         {isFocused && (
           <div className="dpad-focus-indicator">
             <span className="focus-ring" />
+          </div>
+        )}
+        
+        {/* Classificação Indicativa - Canto inferior esquerdo */}
+        {certification && (
+          <div className={`certification-badge cert-${certification.replace('+', '').toLowerCase()}`}>
+            {certification}
           </div>
         )}
         
@@ -445,7 +493,37 @@ const SeriesCard = memo(function SeriesCard({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [rating, setRating] = useState<number | null>(null);
+  const [certification, setCertification] = useState<string | null>(null);
+  const [tmdbPoster, setTmdbPoster] = useState<string | null>(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Busca rating, classificação e imagem do TMDB - executa apenas uma vez
+  useEffect(() => {
+    if (dataLoaded) return;
+    
+    const loadData = async () => {
+      try {
+        // Busca rating, classificação e imagem em paralelo
+        const [ratingResult, certResult, imageResult] = await Promise.all([
+          searchRating(series.name, 'series'),
+          searchCertification(series.name, 'series'),
+          searchImage(series.name, 'series')
+        ]);
+        
+        if (ratingResult !== null) setRating(ratingResult);
+        if (certResult) setCertification(certResult);
+        if (imageResult) setTmdbPoster(imageResult);
+      } catch {
+        // Ignora erros silenciosamente
+      } finally {
+        setDataLoaded(true);
+      }
+    };
+    
+    loadData();
+  }, [series.name, dataLoaded]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -495,10 +573,20 @@ const SeriesCard = memo(function SeriesCard({
     >
       <div className="movie-poster">
         <LazyImage 
-          src={series.logo} 
+          src={tmdbPoster || series.logo} 
           alt={series.name}
           fallbackText={series.name.substring(0, 2)}
         />
+        
+        {/* Badge de Rating IMDB/TMDB */}
+        {rating !== null && rating > 0 && (
+          <div className={`rating-badge ${rating >= 7 ? 'high' : rating >= 5 ? 'medium' : 'low'}`}>
+            <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            <span>{rating.toFixed(1)}</span>
+          </div>
+        )}
         
         {isHovered && (
           <div className="movie-overlay">
@@ -521,6 +609,13 @@ const SeriesCard = memo(function SeriesCard({
           </div>
         )}
         
+        {/* Classificação Indicativa - Canto inferior esquerdo */}
+        {certification && (
+          <div className={`certification-badge cert-${certification.replace('+', '').toLowerCase()}`}>
+            {certification}
+          </div>
+        )}
+        
         <div className="type-indicator series-indicator">
           <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
             <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/>
@@ -532,6 +627,205 @@ const SeriesCard = memo(function SeriesCard({
       <div className="movie-info">
         <h4 className="movie-title">{series.name}</h4>
         <p className="movie-subtitle">{series.category}</p>
+      </div>
+    </div>
+  );
+});
+
+// =============== MOVIE DETAILS MODAL ===============
+const MovieDetailsModal = memo(function MovieDetailsModal({
+  movie,
+  onClose,
+  onPlay
+}: {
+  movie: Movie;
+  onClose: () => void;
+  onPlay: (movie: Movie) => void;
+}) {
+  const [details, setDetails] = useState<MovieDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const playButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Busca detalhes do filme
+  useEffect(() => {
+    setLoading(true);
+    searchMovieDetails(movie.name, movie.type as 'movie' | 'series')
+      .then(d => {
+        setDetails(d);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [movie.name, movie.type]);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    
+    // Auto-focus no botão de play quando o modal abre
+    setTimeout(() => {
+      playButtonRef.current?.focus();
+    }, 100);
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  // Handler para fechar com Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === modalRef.current) {
+      onClose();
+    }
+  };
+
+  const formatRuntime = (minutes: number) => {
+    if (!minutes) return '';
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h > 0 ? `${h}h ${m}min` : `${m}min`;
+  };
+
+  const getCertificationClass = (cert: string) => {
+    const c = cert.toLowerCase().replace('+', '');
+    if (c === 'l' || c === 'livre') return 'cert-l';
+    if (c === '10') return 'cert-10';
+    if (c === '12') return 'cert-12';
+    if (c === '14') return 'cert-14';
+    if (c === '16') return 'cert-16';
+    if (c === '18' || c === 'r' || c === 'nc-17') return 'cert-18';
+    return 'cert-default';
+  };
+
+  return (
+    <div className="movie-details-modal-backdrop" ref={modalRef} onClick={handleBackdropClick}>
+      <div className="movie-details-modal" role="dialog" aria-modal="true">
+        {/* Backdrop Image */}
+        {details?.backdropPath && (
+          <div className="modal-backdrop-image" style={{ backgroundImage: `url(${details.backdropPath})` }} />
+        )}
+        
+        <button className="modal-close" onClick={onClose} data-focusable="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+
+        <div className="modal-content">
+          {/* Poster */}
+          <div className="modal-poster-section">
+            <div className="modal-poster">
+              <LazyImage 
+                src={details?.posterPath || movie.logo} 
+                alt={movie.name}
+                fallbackText={movie.name.substring(0, 2)}
+              />
+            </div>
+          </div>
+
+          {/* Info Section */}
+          <div className="modal-info-section">
+            {loading ? (
+              <div className="modal-loading">
+                <div className="loading-spinner" />
+                <span>Carregando informações...</span>
+              </div>
+            ) : (
+              <>
+                {/* Título e Tagline */}
+                <h1 className="modal-title">{details?.title || movie.name}</h1>
+                {details?.tagline && (
+                  <p className="modal-tagline">"{details.tagline}"</p>
+                )}
+
+                {/* Meta Info */}
+                <div className="modal-meta-row">
+                  {details?.rating && details.rating > 0 && (
+                    <div className={`rating-badge-large ${details.rating >= 7 ? 'high' : details.rating >= 5 ? 'medium' : 'low'}`}>
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                      </svg>
+                      <span>{details.rating.toFixed(1)}</span>
+                      {details.voteCount > 0 && (
+                        <span className="vote-count">({details.voteCount.toLocaleString('pt-BR')} votos)</span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {details?.certification && (
+                    <div className={`certification-badge-large ${getCertificationClass(details.certification)}`}>
+                      {details.certification}
+                    </div>
+                  )}
+                  
+                  {details?.year && (
+                    <span className="meta-item">{details.year}</span>
+                  )}
+                  
+                  {details?.runtime && details.runtime > 0 && (
+                    <span className="meta-item">{formatRuntime(details.runtime)}</span>
+                  )}
+                </div>
+
+                {/* Gêneros */}
+                {details?.genres && details.genres.length > 0 && (
+                  <div className="modal-genres">
+                    {details.genres.map((genre, i) => (
+                      <span key={i} className="genre-tag">{genre}</span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Sinopse */}
+                <div className="modal-overview">
+                  <h3>Sinopse</h3>
+                  <p>{details?.overview || 'Sinopse não disponível.'}</p>
+                </div>
+
+                {/* Diretor */}
+                {details?.director && (
+                  <div className="modal-crew">
+                    <span className="crew-label">Direção:</span>
+                    <span className="crew-value">{details.director}</span>
+                  </div>
+                )}
+
+                {/* Elenco */}
+                {details?.cast && details.cast.length > 0 && (
+                  <div className="modal-cast">
+                    <span className="crew-label">Elenco:</span>
+                    <span className="crew-value">{details.cast.join(', ')}</span>
+                  </div>
+                )}
+
+                {/* Botão de Play */}
+                <div className="modal-actions">
+                  <button 
+                    ref={playButtonRef}
+                    className="play-button-large"
+                    onClick={() => onPlay(movie)}
+                    data-focusable="true"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <span>Assistir Agora</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -551,9 +845,22 @@ const SeriesModal = memo(function SeriesModal({
     Math.min(...Array.from(series.seasons.keys()))
   );
   const [episodePage, setEpisodePage] = useState(1);
+  const [details, setDetails] = useState<MovieDetails | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(true);
   const modalRef = useRef<HTMLDivElement>(null);
   const episodesRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Busca detalhes da série no TMDB
+  useEffect(() => {
+    setLoadingDetails(true);
+    searchMovieDetails(series.name, 'series')
+      .then(d => {
+        setDetails(d);
+        setLoadingDetails(false);
+      })
+      .catch(() => setLoadingDetails(false));
+  }, [series.name]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -605,24 +912,87 @@ const SeriesModal = memo(function SeriesModal({
     }
   }, [hasMoreEpisodes]);
 
+  // Função auxiliar para obter cor da classificação
+  const getCertClass = (cert: string | undefined) => {
+    if (!cert) return '';
+    return `cert-${cert.replace('+', '').toLowerCase()}`;
+  };
+
   return (
     <div className="series-modal-backdrop" ref={modalRef} onClick={handleBackdropClick}>
       <div className="series-modal" role="dialog" aria-modal="true">
+        {/* Backdrop da série */}
+        {details?.backdropPath && (
+          <div className="series-modal-backdrop-image">
+            <img src={details.backdropPath} alt="" />
+            <div className="series-modal-backdrop-gradient" />
+          </div>
+        )}
+        
         <div className="modal-header">
           <div className="modal-poster">
             <LazyImage 
-              src={series.logo} 
+              src={details?.posterPath || series.logo} 
               alt={series.name}
               fallbackText={series.name.substring(0, 2)}
             />
           </div>
           <div className="modal-info">
-            <h2>{series.name}</h2>
+            <h2>{details?.title || series.name}</h2>
+            {details?.tagline && <p className="series-tagline">{details.tagline}</p>}
+            
             <div className="modal-meta">
+              {/* Rating */}
+              {details?.rating && details.rating > 0 && (
+                <span className={`meta-rating ${details.rating >= 7 ? 'high' : details.rating >= 5 ? 'medium' : 'low'}`}>
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                  </svg>
+                  {details.rating.toFixed(1)}
+                </span>
+              )}
+              
+              {/* Classificação Indicativa */}
+              {details?.certification && (
+                <span className={`meta-certification ${getCertClass(details.certification)}`}>
+                  {details.certification}
+                </span>
+              )}
+              
+              {/* Ano */}
+              {details?.year && <span className="meta-year">{details.year}</span>}
+              
               <span className="meta-badge">{series.seasonCount} Temporada{series.seasonCount > 1 ? 's' : ''}</span>
               <span className="meta-badge">{series.episodeCount} Episódios</span>
               <span className="meta-category">{series.category}</span>
             </div>
+            
+            {/* Gêneros */}
+            {details?.genres && details.genres.length > 0 && (
+              <div className="series-genres">
+                {details.genres.map((genre, i) => (
+                  <span key={i} className="genre-tag">{genre}</span>
+                ))}
+              </div>
+            )}
+            
+            {/* Sinopse */}
+            {loadingDetails ? (
+              <div className="series-synopsis-loading">
+                <div className="loading-spinner-small" />
+                <span>Carregando informações...</span>
+              </div>
+            ) : details?.overview ? (
+              <p className="series-synopsis">{details.overview}</p>
+            ) : null}
+            
+            {/* Elenco e Diretor */}
+            {details?.director && (
+              <p className="series-crew"><strong>Criador:</strong> {details.director}</p>
+            )}
+            {details?.cast && details.cast.length > 0 && (
+              <p className="series-cast"><strong>Elenco:</strong> {details.cast.slice(0, 5).join(', ')}</p>
+            )}
           </div>
           <button 
             ref={closeButtonRef}
@@ -1107,6 +1477,7 @@ export function MovieCatalog({
   const [contentFilter, setContentFilter] = useState<'all' | 'movies' | 'series'>('all');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedSeries, setSelectedSeries] = useState<GroupedSeries | null>(initialSeriesModal);
+  const [selectedMovieForDetails, setSelectedMovieForDetails] = useState<Movie | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [visibleCategories, setVisibleCategories] = useState(CATEGORIES_PER_LOAD);
   const [showAllCategoriesModal, setShowAllCategoriesModal] = useState(false);
@@ -1428,7 +1799,13 @@ export function MovieCatalog({
   }, []);
 
   const handleMovieSelect = useCallback((movie: Movie) => {
-    // Para filmes, não passa informações de série
+    // Abre o modal de detalhes em vez de reproduzir diretamente
+    setSelectedMovieForDetails(movie);
+  }, []);
+
+  const handlePlayFromDetails = useCallback((movie: Movie) => {
+    // Fecha o modal e inicia reprodução
+    setSelectedMovieForDetails(null);
     onSelectMovie({ movie, seriesInfo: null, seriesData: null });
   }, [onSelectMovie]);
 
@@ -1504,6 +1881,15 @@ export function MovieCatalog({
 
   return (
     <div className="movie-catalog premium">
+      {/* Modal de Detalhes do Filme */}
+      {selectedMovieForDetails && (
+        <MovieDetailsModal
+          movie={selectedMovieForDetails}
+          onClose={() => setSelectedMovieForDetails(null)}
+          onPlay={handlePlayFromDetails}
+        />
+      )}
+
       {/* Modal de Série */}
       {selectedSeries && (
         <SeriesModal

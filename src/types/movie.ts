@@ -6,6 +6,7 @@ export interface Movie {
   category: string;
   year?: string;
   type: 'movie' | 'series';
+  rating?: number; // Nota do TMDB/IMDB (0-10)
 }
 
 export interface MovieCategory {
