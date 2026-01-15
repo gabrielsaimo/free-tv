@@ -32,8 +32,11 @@
   flex: 1;
   display: flex;
   min-height: 0;
+  max-height: calc(100vh - 64px);
+  max-height: calc(100dvh - 64px);
   height: calc(100vh - 64px);
   height: calc(100dvh - 64px);
+  overflow: hidden;
 }
 
 .sidebar-wrapper {
@@ -47,6 +50,9 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
   background: #0a0a0a;
 }
 

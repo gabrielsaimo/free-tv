@@ -33,11 +33,7 @@ const rawChannels = [
   { id: 'telecine-action', name: 'Telecine Action', url: 'https://canais.fazoeli.co.za/fontes/smart/telecineaction.m3u8', category: 'Filmes', logo: `${LOGO_BASE}/tele-cine-action-br.png` },
   { id: 'telecine-premium', name: 'Telecine Premium', url: 'https://canais.fazoeli.co.za/fontes/smart/telecinepremium.m3u8', category: 'Filmes', logo: `${LOGO_BASE}/tele-cine-premium-br.png` },
   { id: 'telecine-pipoca', name: 'Telecine Pipoca', url: 'https://canais.fazoeli.co.za/fontes/smart/telecinepipoca.m3u8', category: 'Filmes', logo: `${LOGO_BASE}/tele-cine-pipoca-br.png` },
-  { id: 'novo-tempo', name: 'TV Novo Tempo', url: 'https://stream.live.novotempo.com/tv/smil:tvnovotempo.smil/playlist.m3u8', category: 'Filmes', logo: 'https://i.postimg.cc/mgpGyqRg/novotempo.png' },
-  { id: 'rede-gospel', name: 'Rede Gospel', url: 'https://redegospel-aovivo.nuvemplay.live/hls/stream.m3u8', category: 'Filmes', logo: 'https://i.imgur.com/mttSwgO.png' },
-  { id: 'angel-tv', name: 'Angel TV', url: 'https://janya-digimix.akamaized.net/vglive-sk-382409/portuese/ngrp:angelportuguese_all/playlist.m3u8', category: 'Filmes', logo: 'https://i.imgur.com/qKLEGU7.png' },
-  { id: 'despertar-tv', name: 'Despertar TV', url: 'https://cdn.live.br1.jmvstream.com/webtv/pejexypz/playlist/playlist.m3u8', category: 'Filmes', logo: getFallbackLogo('Despertar') },
-  
+ 
   // === SERIES ===
   { id: 'warner', name: 'Warner Channel', url: 'https://canais.fazoeli.co.za/fontes/smart/warnerchannel.m3u8', category: 'Series', logo: `${LOGO_BASE}/warner-channel-br.png` },
   { id: 'tnt', name: 'TNT', url: 'https://canais.fazoeli.co.za/fontes/smart/tnt.m3u8', category: 'Series', logo: `${LOGO_BASE}/tnt-br.png` },
@@ -59,7 +55,6 @@ const rawChannels = [
   { id: '24h-odeia-chris', name: '24h Todo Mundo Odeia o Chris', url: 'https://canais.fazoeli.co.za/fontes/smart/24h_odeiachris.m3u8', category: 'Infantil', logo: getFallbackLogo('Chris') },
   { id: 'adult-swim', name: 'Adult Swim', url: 'https://canais.fazoeli.co.za/fontes/smart/adultswim.m3u8', category: 'Infantil', logo: `${LOGO_US}/adult-swim-us.png` },
   { id: 'nickelodeon', name: 'Nickelodeon', url: 'https://canais.fazoeli.co.za/fontes/smart/nickelodeon.m3u8', category: 'Infantil', logo: `${LOGO_LAM}/nickelodeon-lam.png` },
-  { id: 'kuriakos-kids', name: 'Kuriakos Kids', url: 'https://w2.manasat.com/kkids/smil:kkids.smil/playlist.m3u8', category: 'Infantil', logo: 'https://i.imgur.com/SRX6EPY.png' },
   { id: 'gospel-cartoon', name: 'Gospel Cartoon', url: 'https://stmv1.srvif.com/gospelcartoon/gospelcartoon/playlist.m3u8', category: 'Infantil', logo: 'https://i.imgur.com/yxjPno5.png' },
   { id: 'geekdot', name: 'Geekdot', url: 'https://stream.ichibantv.com:3764/hybrid/play.m3u8', category: 'Infantil', logo: 'https://i.imgur.com/jML1u4O.png' },
  
@@ -118,6 +113,9 @@ const rawChannels = [
   { id: 'sertao-tv', name: 'Sertão TV', url: 'http://wz4.dnip.com.br/sertaotv/sertaotv.sdp/playlist.m3u8', category: 'TV Aberta', logo: 'https://i.imgur.com/b5xOCsC.png' },
   { id: 'cwb-tv', name: 'CWB TV', url: 'https://59d39900ebfb8.streamlock.net/cwbtv/cwbtv/playlist.m3u8', category: 'TV Aberta', logo: 'https://i.imgur.com/S0ISpmU.png' },
   { id: 'record-internacional', name: 'Record Internacional', url: 'https://viamotionhsi.netplus.ch/live/eds/rederecordinternacional/browser-HLS8/rederecordinternacional.m3u8', category: 'TV Aberta', logo: 'https://i.imgur.com/sz9gTTr.png' },
+   { id: 'novo-tempo', name: 'TV Novo Tempo', url: 'https://stream.live.novotempo.com/tv/smil:tvnovotempo.smil/playlist.m3u8', category: 'TV Aberta', logo: 'https://i.postimg.cc/mgpGyqRg/novotempo.png' },
+  { id: 'rede-gospel', name: 'Rede Gospel', url: 'https://redegospel-aovivo.nuvemplay.live/hls/stream.m3u8', category: 'TV Aberta', logo: 'https://i.imgur.com/mttSwgO.png' },
+  { id: 'despertar-tv', name: 'Despertar TV', url: 'https://cdn.live.br1.jmvstream.com/webtv/pejexypz/playlist/playlist.m3u8', category: 'TV Aberta', logo: getFallbackLogo('Despertar') },
   
   // === ESPORTES ===
   { id: 'sportv', name: 'SporTV', url: 'https://canais.fazoeli.co.za/fontes/smart/sportv.m3u8', category: 'Esportes', logo: `${LOGO_BASE}/sportv-br.png` },
@@ -157,24 +155,48 @@ const rawChannels = [
   { id: '4k-travel', name: '4K Travel TV', url: 'https://streams2.sofast.tv/sofastplayout/33c31ac4-51fa-46ae-afd0-0d1fe5e60a80_0_HLS/master.m3u8', category: 'Internacionais', logo: getFallbackLogo('4K Travel') },
   { id: 'destination-tv', name: 'Destination TV', url: 'http://media4.tripsmarter.com:1935/LiveTV/DTVHD/playlist.m3u8', category: 'Internacionais', logo: getFallbackLogo('Destination') },
   { id: 'movie-channel', name: 'The Movie Channel', url: 'https://streams2.sofast.tv/sofastplayout/32eb332e-f644-46e5-ad91-e55ad80d14f7_0_HLS/master.m3u8', category: 'Internacionais', logo: getFallbackLogo('Movie') },
+  { id: 'kuriakos-kids', name: 'Kuriakos Kids', url: 'https://w2.manasat.com/kkids/smil:kkids.smil/playlist.m3u8', category: 'Internacionais', logo: 'https://i.imgur.com/SRX6EPY.png' },
+  { id: 'angel-tv', name: 'Angel TV', url: 'https://janya-digimix.akamaized.net/vglive-sk-382409/portuese/ngrp:angelportuguese_all/playlist.m3u8', category: 'Internacionais', logo: 'https://i.imgur.com/qKLEGU7.png' },
 
   // === ADULTO (SECRETO) ===
   { id: 'playboy', name: 'Playboy TV', url: 'https://canais.fazoeli.co.za/fontes/smart/playboy.m3u8', category: 'Adulto', logo: getFallbackLogo('Playboy') },
   { id: 'sexy-hot', name: 'Sexy Hot', url: 'https://canais.fazoeli.co.za/fontes/smart/sexyhot.m3u8', category: 'Adulto', logo: getFallbackLogo('Sexy Hot') },
-  { id: 'adult-all', name: 'Adult IPTV All', url: 'http://cdn.adultiptv.net/lists/all.m3u8', category: 'Adulto', logo: getFallbackLogo('Adult') },
-  { id: 'adult-pornstar', name: 'Adult Pornstar', url: 'http://cdn.adultiptv.net/lists/pornstar.m3u8', category: 'Adulto', logo: getFallbackLogo('Pornstar') },
-  { id: 'adult-amateur', name: 'Adult Amateur', url: 'http://cdn.adultiptv.net/lists/amateur.m3u8', category: 'Adulto', logo: getFallbackLogo('Amateur') },
-  { id: 'adult-milf', name: 'Adult MILF', url: 'http://cdn.adultiptv.net/lists/milf.m3u8', category: 'Adulto', logo: getFallbackLogo('MILF') },
-  { id: 'adult-teen', name: 'Adult Teen', url: 'http://cdn.adultiptv.net/lists/teen.m3u8', category: 'Adulto', logo: getFallbackLogo('Teen') },
-  { id: 'adult-latina', name: 'Adult Latina', url: 'http://cdn.adultiptv.net/lists/latina.m3u8', category: 'Adulto', logo: getFallbackLogo('Latina') },
-  { id: 'adult-asian', name: 'Adult Asian', url: 'http://cdn.adultiptv.net/lists/asian.m3u8', category: 'Adulto', logo: getFallbackLogo('Asian') },
-  { id: 'adult-ebony', name: 'Adult Ebony', url: 'http://cdn.adultiptv.net/lists/ebony.m3u8', category: 'Adulto', logo: getFallbackLogo('Ebony') },
-  { id: 'adult-lesbian', name: 'Adult Lesbian', url: 'http://cdn.adultiptv.net/lists/lesbian.m3u8', category: 'Adulto', logo: getFallbackLogo('Lesbian') },
-  { id: 'adult-anal', name: 'Adult Anal', url: 'http://cdn.adultiptv.net/lists/anal.m3u8', category: 'Adulto', logo: getFallbackLogo('Anal') },
-  { id: 'adult-blonde', name: 'Adult Blonde', url: 'http://cdn.adultiptv.net/lists/blonde.m3u8', category: 'Adulto', logo: getFallbackLogo('Blonde') },
-  { id: 'adult-brunette', name: 'Adult Brunette', url: 'http://cdn.adultiptv.net/lists/brunette.m3u8', category: 'Adulto', logo: getFallbackLogo('Brunette') },
-  { id: 'adult-bbw', name: 'Adult BBW', url: 'http://cdn.adultiptv.net/lists/bbw.m3u8', category: 'Adulto', logo: getFallbackLogo('BBW') },
-  { id: 'adult-trans', name: 'Adult Trans', url: 'http://cdn.adultiptv.net/lists/trans.m3u8', category: 'Adulto', logo: getFallbackLogo('Trans') },
+  // AdultIPTV.net CDN
+  { id: 'adult-anal-cdn', name: 'Anal', url: 'https://cdn.adultiptv.net/anal.m3u8', category: 'Adulto', logo: getFallbackLogo('Anal') },
+  { id: 'adult-asian-cdn', name: 'Asian', url: 'https://cdn.adultiptv.net/asian.m3u8', category: 'Adulto', logo: getFallbackLogo('Asian') },
+  { id: 'adult-bigass', name: 'Big Ass', url: 'https://cdn.adultiptv.net/bigass.m3u8', category: 'Adulto', logo: getFallbackLogo('BigAss') },
+  { id: 'adult-bigdick', name: 'Big Dick', url: 'https://cdn.adultiptv.net/bigdick.m3u8', category: 'Adulto', logo: getFallbackLogo('BigDick') },
+  { id: 'adult-bigtits', name: 'Big Tits', url: 'https://cdn.adultiptv.net/bigtits.m3u8', category: 'Adulto', logo: getFallbackLogo('BigTits') },
+  { id: 'adult-blowjob', name: 'Blowjob', url: 'https://cdn.adultiptv.net/blowjob.m3u8', category: 'Adulto', logo: getFallbackLogo('Blowjob') },
+  { id: 'adult-compilation', name: 'Compilation', url: 'https://cdn.adultiptv.net/compilation.m3u8', category: 'Adulto', logo: getFallbackLogo('Compilation') },
+  { id: 'adult-cuckold', name: 'Cuckold', url: 'https://cdn.adultiptv.net/cuckold.m3u8', category: 'Adulto', logo: getFallbackLogo('Cuckold') },
+  { id: 'adult-fetish', name: 'Fetish', url: 'https://cdn.adultiptv.net/fetish.m3u8', category: 'Adulto', logo: getFallbackLogo('Fetish') },
+  { id: 'adult-gangbang', name: 'Gangbang', url: 'https://cdn.adultiptv.net/gangbang.m3u8', category: 'Adulto', logo: getFallbackLogo('Gangbang') },
+  { id: 'adult-gay-cdn', name: 'Gay', url: 'https://cdn.adultiptv.net/gay.m3u8', category: 'Adulto', logo: getFallbackLogo('Gay') },
+  { id: 'adult-hardcore', name: 'Hardcore', url: 'https://cdn.adultiptv.net/hardcore.m3u8', category: 'Adulto', logo: getFallbackLogo('Hardcore') },
+  { id: 'adult-interracial', name: 'Interracial', url: 'https://cdn.adultiptv.net/interracial.m3u8', category: 'Adulto', logo: getFallbackLogo('Interracial') },
+  { id: 'adult-livecams', name: 'Live Cams', url: 'https://cdn.adultiptv.net/livecams.m3u8', category: 'Adulto', logo: getFallbackLogo('LiveCams') },
+  { id: 'adult-pornstar-cdn', name: 'Pornstar', url: 'https://cdn.adultiptv.net/pornstar.m3u8', category: 'Adulto', logo: getFallbackLogo('Pornstar') },
+  { id: 'adult-pov', name: 'POV', url: 'https://cdn.adultiptv.net/pov.m3u8', category: 'Adulto', logo: getFallbackLogo('POV') },
+  { id: 'adult-rough', name: 'Rough', url: 'https://cdn.adultiptv.net/rough.m3u8', category: 'Adulto', logo: getFallbackLogo('Rough') },
+  { id: 'adult-russian', name: 'Russian', url: 'https://cdn.adultiptv.net/russian.m3u8', category: 'Adulto', logo: getFallbackLogo('Russian') },
+  { id: 'adult-threesome', name: 'Threesome', url: 'https://cdn.adultiptv.net/threesome.m3u8', category: 'Adulto', logo: getFallbackLogo('Threesome') },
+  { id: 'adult-woman', name: 'Woman', url: 'https://live.redtraffic.net/woman.m3u8', category: 'Adulto', logo: getFallbackLogo('Woman') },
+  // MyCamTV
+  { id: 'mycam-anal', name: 'MyCam Anal', url: 'https://live.mycamtv.com/anal.m3u8', category: 'Adulto', logo: getFallbackLogo('MyCam') },
+  { id: 'mycam-asian', name: 'MyCam Asian', url: 'https://live.mycamtv.com/asian.m3u8', category: 'Adulto', logo: getFallbackLogo('MyCam') },
+  { id: 'mycam-bigass', name: 'MyCam Big Ass', url: 'https://live.mycamtv.com/defstream.m3u8', category: 'Adulto', logo: getFallbackLogo('MyCam') },
+  { id: 'mycam-bigtits', name: 'MyCam Big Tits', url: 'https://live.mycamtv.com/bigtits.m3u8', category: 'Adulto', logo: getFallbackLogo('MyCam') },
+  { id: 'mycam-blonde', name: 'MyCam Blonde', url: 'https://live.mycamtv.com/blonde.m3u8', category: 'Adulto', logo: getFallbackLogo('MyCam') },
+  { id: 'mycam-brunette', name: 'MyCam Brunette', url: 'https://live.mycamtv.com/brunette.m3u8', category: 'Adulto', logo: getFallbackLogo('MyCam') },
+  { id: 'mycam-latina', name: 'MyCam Latina', url: 'https://live.mycamtv.com/latina.m3u8', category: 'Adulto', logo: getFallbackLogo('MyCam') },
+  { id: 'mycam-squirt', name: 'MyCam Squirt', url: 'https://live.mycamtv.com/squirt.m3u8', category: 'Adulto', logo: getFallbackLogo('MyCam') },
+  { id: 'mycam-white', name: 'MyCam White', url: 'https://live.mycamtv.com/white.m3u8', category: 'Adulto', logo: getFallbackLogo('MyCam') },
+  // Canais Premium
+  { id: 'jenny-live', name: 'Jenny Live', url: 'https://59ec5453559f0.streamlock.net/JennyLive/JennyLive/playlist.m3u8', category: 'Adulto', logo: getFallbackLogo('Jenny') },
+  { id: 'miami-tv-mexico', name: 'Miami TV Mexico', url: 'https://59ec5453559f0.streamlock.net/mexicotv/smil:miamitvmexico/playlist.m3u8', category: 'Adulto', logo: getFallbackLogo('Miami') },
+  { id: 'olala', name: 'O-la-la!', url: 'http://31.148.48.15/O-la-la/index.m3u8', category: 'Adulto', logo: 'https://i.imgur.com/6aOmZs4.png' },
+  { id: 'playboy-latam', name: 'Playboy TV Latin America', url: 'http://190.11.225.124:5000/live/playboy_hd/playlist.m3u8', category: 'Adulto', logo: 'https://i.imgur.com/B3DMUM9.png' },
 ];
 
 // Ordem das categorias para exibição

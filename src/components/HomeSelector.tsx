@@ -125,7 +125,7 @@ export function HomeSelector({ onSelect }: HomeSelectorProps) {
                 <h3>TV ao Vivo</h3>
                 <p>Canais de TV em tempo real</p>
                 <ul className="card-features">
-                  <li>📺 +90 canais</li>
+                  <li>📺 +150 canais</li>
                   <li>⚡ Streaming HD</li>
                   <li>📡 Programação EPG</li>
                 </ul>

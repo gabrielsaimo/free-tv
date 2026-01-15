@@ -77,7 +77,7 @@ function HomePage() {
 // Componente de TV
 function TVPage() {
   const navigate = useNavigate();
-  const { isAdultUnlocked, unlockAdult } = useAdultMode();
+  const { isAdultUnlocked, unlockAdult, lockAdult } = useAdultMode();
   const [favorites, setFavorites] = useLocalStorage<string[]>('tv-favorites', []);
   const [lastChannelId, setLastChannelId] = useLocalStorage<string | null>('tv-last-channel', null);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
@@ -188,7 +188,7 @@ function TVPage() {
   return (
     <div className={`page-container tv-page ${isTheaterMode ? 'theater-mode' : ''}`}>
       {/* Header Global */}
-      {!isTheaterMode && <AppHeader transparent isAdultUnlocked={isAdultUnlocked} onUnlockAdult={unlockAdult} />}
+      {!isTheaterMode && <AppHeader transparent isAdultUnlocked={isAdultUnlocked} onUnlockAdult={unlockAdult} onLockAdult={lockAdult} />}
 
       <Suspense fallback={<LoadingFallback />}>
         <div className="tv-layout">
@@ -226,7 +226,6 @@ function TVPage() {
             onToggleFavorite={handleToggleFavorite}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={handleToggleSidebar}
-            isAdultModeUnlocked={isAdultUnlocked}
           />
         </div>
 
@@ -259,7 +258,6 @@ function TVPage() {
                 isCollapsed={false}
                 onToggleCollapse={() => {}}
                 isMobileView={true}
-                isAdultModeUnlocked={isAdultUnlocked}
               />
             </div>
           </div>
@@ -302,7 +300,7 @@ function TVPage() {
 // Componente de Filmes
 function MoviesPage() {
   const navigate = useNavigate();
-  const { isAdultUnlocked, unlockAdult } = useAdultMode();
+  const { isAdultUnlocked, unlockAdult, lockAdult } = useAdultMode();
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [seriesInfo, setSeriesInfo] = useState<import('./components/MoviePlayer').SeriesEpisodeInfo | null>(null);
   const [currentSeriesData, setCurrentSeriesData] = useState<import('./components/MovieCatalog').GroupedSeries | null>(null);
@@ -362,6 +360,7 @@ function MoviesPage() {
       <AppHeader 
         isAdultUnlocked={isAdultUnlocked} 
         onUnlockAdult={unlockAdult}
+        onLockAdult={lockAdult}
         showBackButton={!!selectedMovie}
         onBack={handleBackFromMovie}
         title={selectedMovie?.name}

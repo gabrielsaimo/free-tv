@@ -246,7 +246,7 @@ export function HomeSelector({ onSelect }: HomeSelectorProps) {
         <h3>TV ao Vivo</h3>
         <p>Canais de TV em tempo real</p>
         <ul>
-          <li>📺 +90 canais</li>
+          <li>📺 +150 canais</li>
           <li>⚡ Streaming HD</li>
           <li>📡 Programação EPG</li>
         </ul>
@@ -281,7 +281,7 @@ export function HomeSelector({ onSelect }: HomeSelectorProps) {
 │  │  📺 TV ao   │    │  🎬 Filmes  │        │
 │  │    Vivo     │    │  & Séries   │        │
 │  │             │    │             │        │
-│  │  +90 canais │    │ +10k títulos│        │
+│  │  +150 canais │    │ +10k títulos│        │
 │  │  EPG        │    │ Lançamentos │        │
 │  └─────────────┘    └─────────────┘        │
 └─────────────────────────────────────────────┘

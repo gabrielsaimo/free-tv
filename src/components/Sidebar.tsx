@@ -13,7 +13,6 @@ interface SidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   isMobileView?: boolean;
-  isAdultModeUnlocked?: boolean;
 }
 
 type FilterType = 'all' | 'favorites';
@@ -27,7 +26,6 @@ export const Sidebar = memo(function Sidebar({
   isCollapsed,
   onToggleCollapse,
   isMobileView = false,
-  isAdultModeUnlocked = false,
 }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
@@ -41,7 +39,7 @@ export const Sidebar = memo(function Sidebar({
       setTimeout(() => {
         activeChannelRef.current?.scrollIntoView({
           behavior: 'smooth',
-          block: 'center',
+          block: 'nearest',
         });
       }, 100);
     }
@@ -100,10 +98,7 @@ export const Sidebar = memo(function Sidebar({
           </svg>
           {!isCollapsed && (
             <span className="logo-text">
-              Saimo TV
-              {isAdultModeUnlocked && (
-                <span className="adult-badge">+18</span>
-              )}
+              Tv Ao Vivo
             </span>
           )}
         </div>
