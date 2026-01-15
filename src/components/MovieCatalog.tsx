@@ -212,13 +212,15 @@ const LazyImage = memo(function LazyImage({
   alt, 
   fallbackText,
   className = '',
-  type
+  type,
+  category
 }: { 
   src?: string; 
   alt: string; 
   fallbackText: string;
   className?: string;
   type?: 'movie' | 'series';
+  category?: string;
 }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
@@ -245,18 +247,18 @@ const LazyImage = memo(function LazyImage({
     return () => observer.disconnect();
   }, []);
 
-  // Busca imagem quando dá erro
+  // Busca imagem quando dá erro - agora com categoria para ser mais assertivo
   useEffect(() => {
     if (error && !fallbackImage && !loadingFallback && fallbackText) {
       setLoadingFallback(true);
-      searchImage(fallbackText, type)
+      searchImage(fallbackText, type, category)
         .then(url => {
           setFallbackImage(url);
           setLoadingFallback(false);
         })
         .catch(() => setLoadingFallback(false));
     }
-  }, [error, fallbackText, type, fallbackImage, loadingFallback]);
+  }, [error, fallbackText, type, category, fallbackImage, loadingFallback]);
 
   // Se conseguiu fallback
   if (fallbackImage) {
@@ -345,11 +347,11 @@ const MovieCard = memo(function MovieCard({
     
     const loadData = async () => {
       try {
-        // Busca rating, classificação e imagem em paralelo
+        // Busca rating, classificação e imagem em paralelo - agora com categoria para ser mais assertivo
         const [ratingResult, certResult, imageResult] = await Promise.all([
-          rating === null ? searchRating(movie.name, movie.type as 'movie' | 'series') : Promise.resolve(rating),
-          searchCertification(movie.name, movie.type as 'movie' | 'series'),
-          searchImage(movie.name, movie.type as 'movie' | 'series')
+          rating === null ? searchRating(movie.name, movie.type as 'movie' | 'series', movie.category) : Promise.resolve(rating),
+          searchCertification(movie.name, movie.type as 'movie' | 'series', movie.category),
+          searchImage(movie.name, movie.type as 'movie' | 'series', movie.category)
         ]);
         
         if (ratingResult !== null) setRating(ratingResult);
@@ -505,11 +507,11 @@ const SeriesCard = memo(function SeriesCard({
     
     const loadData = async () => {
       try {
-        // Busca rating, classificação e imagem em paralelo
+        // Busca rating, classificação e imagem em paralelo - agora com categoria para ser mais assertivo
         const [ratingResult, certResult, imageResult] = await Promise.all([
-          searchRating(series.name, 'series'),
-          searchCertification(series.name, 'series'),
-          searchImage(series.name, 'series')
+          searchRating(series.name, 'series', series.category),
+          searchCertification(series.name, 'series', series.category),
+          searchImage(series.name, 'series', series.category)
         ]);
         
         if (ratingResult !== null) setRating(ratingResult);
@@ -1658,6 +1660,37 @@ export function MovieCatalog({
       setIsSearching(true);
       
       let moviesToSearch: MovieWithAdult[] = [];
+      const seenUrls = new Set<string>();
+      
+      // Função auxiliar para adicionar sem duplicatas
+      const addWithoutDuplicates = (movies: MovieWithAdult[]) => {
+        for (const m of movies) {
+          if (!seenUrls.has(m.url)) {
+            seenUrls.add(m.url);
+            moviesToSearch.push(m);
+          }
+        }
+      };
+      
+      // Função auxiliar para filtrar por query
+      const filterByQuery = (movies: MovieWithAdult[], query: string) => {
+        return movies.filter(m => {
+          const name = m.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          const info = parseSeriesInfo(m.name);
+          const baseName = info ? info.baseName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
+          return name.includes(query) || baseName.includes(query);
+        });
+      };
+      
+      // Função auxiliar para filtrar por tipo
+      const filterByType = (movies: MovieWithAdult[]) => {
+        if (contentFilter === 'movies') {
+          return movies.filter(m => m.type === 'movie');
+        } else if (contentFilter === 'series') {
+          return movies.filter(m => m.type === 'series');
+        }
+        return movies;
+      };
       
       if (selectedCategory) {
         // Busca em categoria específica
@@ -1676,81 +1709,56 @@ export function MovieCatalog({
         const query = debouncedSearch.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         
         // Primeiro busca nos dados iniciais
-        moviesToSearch = availableInitialMovies.filter(m => {
-          const name = m.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          return name.includes(query);
-        });
+        const initialFiltered = filterByQuery(availableInitialMovies, query);
+        addWithoutDuplicates(initialFiltered);
         
         // Também busca nos dados já carregados em memória
         loadedCategoryData.forEach((movies) => {
-          const filtered = movies.filter(m => {
-            const name = m.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            return name.includes(query);
-          });
-          moviesToSearch.push(...filtered);
+          const filtered = filterByQuery(movies, query);
+          addWithoutDuplicates(filtered);
         });
         
-        // Remove duplicatas por URL
-        const seenUrls = new Set<string>();
-        moviesToSearch = moviesToSearch.filter(m => {
-          if (seenUrls.has(m.url)) return false;
-          seenUrls.add(m.url);
-          return true;
-        });
+        // Aplica filtro de tipo ANTES de decidir se carrega mais
+        const filteredByType = filterByType(moviesToSearch);
         
-        // Se não achou, carrega as 20 principais categorias (incluindo Netflix, Prime, etc)
-        if (moviesToSearch.length < 20) {
-          const categoriesToLoad = availableCategoryIndex.slice(0, 25);
+        // Se não achou resultados SUFICIENTES DO TIPO DESEJADO, carrega mais categorias
+        // Usa filteredCategoryIndex para carregar categorias do tipo correto primeiro
+        if (filteredByType.length < 50) {
+          // Prioriza categorias que têm o tipo de conteúdo desejado
+          const categoriesToLoad = filteredCategoryIndex
+            .filter(cat => !loadedCategoryData.has(cat.name))
+            .slice(0, 50); // Aumenta para 50 categorias
+          
           for (const cat of categoriesToLoad) {
-            if (!loadedCategoryData.has(cat.name)) {
-              try {
-                const movies = await loadCategory(cat.name);
-                setLoadedCategoryData(prev => {
-                  const newMap = new Map(prev);
-                  newMap.set(cat.name, movies);
-                  return newMap;
-                });
-                
-                const filtered = movies.filter(m => {
-                  const name = m.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                  return name.includes(query);
-                });
-                
-                // Adiciona sem duplicatas
-                for (const m of filtered) {
-                  if (!seenUrls.has(m.url)) {
-                    seenUrls.add(m.url);
-                    moviesToSearch.push(m);
-                  }
-                }
-                
-                // Se já encontrou resultados suficientes, para de carregar
-                if (moviesToSearch.length >= 50) break;
-              } catch (e) {
-                // Ignora erros de carregamento de categoria
-                console.log(`Erro ao carregar categoria ${cat.name}:`, e);
-              }
+            try {
+              const movies = await loadCategory(cat.name);
+              setLoadedCategoryData(prev => {
+                const newMap = new Map(prev);
+                newMap.set(cat.name, movies);
+                return newMap;
+              });
+              
+              const filtered = filterByQuery(movies, query);
+              addWithoutDuplicates(filtered);
+              
+              // Verifica se já tem resultados suficientes DO TIPO DESEJADO
+              const currentFilteredByType = filterByType(moviesToSearch);
+              if (currentFilteredByType.length >= 100) break;
+            } catch (e) {
+              // Ignora erros de carregamento de categoria
+              console.log(`Erro ao carregar categoria ${cat.name}:`, e);
             }
           }
         }
       }
 
-      // Aplica filtro de tipo
-      if (contentFilter === 'movies') {
-        moviesToSearch = moviesToSearch.filter(m => m.type === 'movie');
-      } else if (contentFilter === 'series') {
-        moviesToSearch = moviesToSearch.filter(m => m.type === 'series');
-      }
+      // Aplica filtro de tipo final
+      moviesToSearch = filterByType(moviesToSearch);
 
-      // Aplica filtro de busca
-      if (debouncedSearch.trim()) {
+      // Aplica filtro de busca final (para categoria selecionada)
+      if (debouncedSearch.trim() && selectedCategory) {
         const query = debouncedSearch.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        moviesToSearch = moviesToSearch.filter(m => {
-          const name = m.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          const info = parseSeriesInfo(m.name);
-          const baseName = info ? info.baseName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
-          return name.includes(query) || baseName.includes(query);
-        });
+        moviesToSearch = filterByQuery(moviesToSearch, query);
       }
 
       const grouped = groupSeriesEpisodes(moviesToSearch);
@@ -1759,7 +1767,7 @@ export function MovieCatalog({
     };
 
     performSearch();
-  }, [debouncedSearch, selectedCategory, contentFilter, availableCategoryIndex, availableInitialMovies, loadedCategoryData]);
+  }, [debouncedSearch, selectedCategory, contentFilter, filteredCategoryIndex, availableInitialMovies, loadedCategoryData]);
 
   // Filme em destaque
   const featuredContent = useMemo(() => {

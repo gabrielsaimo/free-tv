@@ -1,4 +1,4 @@
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useEffect, useRef } from 'react';
 import './ChannelCard.css';
 
 interface ChannelCardProps {
@@ -13,6 +13,8 @@ interface ChannelCardProps {
   onToggleFavorite: (e: React.MouseEvent) => void;
 }
 
+type ImageState = 'loading' | 'loaded' | 'error';
+
 export const ChannelCard = memo(function ChannelCard({
   name,
   category,
@@ -23,8 +25,10 @@ export const ChannelCard = memo(function ChannelCard({
   onSelect,
   onToggleFavorite,
 }: ChannelCardProps) {
-  const [imgError, setImgError] = useState(false);
+  const [imageState, setImageState] = useState<ImageState>(logo ? 'loading' : 'error');
   const [isFocused, setIsFocused] = useState(false);
+  const [showSuccessIndicator, setShowSuccessIndicator] = useState(false);
+  const prevLogoRef = useRef<string | undefined>(logo);
 
   const initials = name
     .split(' ')
@@ -32,6 +36,27 @@ export const ChannelCard = memo(function ChannelCard({
     .join('')
     .slice(0, 2)
     .toUpperCase();
+
+  // Detecta mudança de imagem e mostra indicador de sucesso
+  useEffect(() => {
+    if (prevLogoRef.current !== logo && logo) {
+      setImageState('loading');
+      if (prevLogoRef.current) {
+        setShowSuccessIndicator(true);
+        const timer = setTimeout(() => setShowSuccessIndicator(false), 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+    prevLogoRef.current = logo;
+  }, [logo]);
+
+  const handleImageLoad = () => {
+    setImageState('loaded');
+  };
+
+  const handleImageError = () => {
+    setImageState('error');
+  };
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -44,6 +69,9 @@ export const ChannelCard = memo(function ChannelCard({
       onToggleFavorite(e as unknown as React.MouseEvent);
     }
   }, [onSelect, onToggleFavorite]);
+
+  const isLoading = imageState === 'loading';
+  const hasImage = imageState === 'loaded' && logo;
 
   return (
     <div
@@ -61,16 +89,37 @@ export const ChannelCard = memo(function ChannelCard({
       )}
       
       <div className="channel-logo">
-        {logo && !imgError ? (
+        {logo && imageState !== 'error' && (
           <img 
             src={logo} 
             alt={name} 
-            className="channel-logo-img"
-            onError={() => setImgError(true)}
+            className={`channel-logo-img ${hasImage ? 'loaded' : ''} ${isLoading ? 'loading' : ''}`}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
           />
-        ) : (
+        )}
+        
+        {/* Indicador de carregamento */}
+        {isLoading && (
+          <div className="channel-loading-overlay">
+            <div className="channel-loading-spinner" />
+          </div>
+        )}
+
+        {/* Indicador de sucesso quando imagem é atualizada */}
+        {showSuccessIndicator && hasImage && (
+          <div className="channel-success-indicator">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        )}
+
+        {/* Fallback para iniciais */}
+        {imageState === 'error' && (
           <span className="channel-initials">{initials}</span>
         )}
+
         {isActive && <div className="live-indicator" />}
       </div>
       

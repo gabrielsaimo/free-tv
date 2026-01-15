@@ -22,16 +22,11 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  overflow: hidden;
 }
 
-.movie-poster img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.movie-card:hover .movie-poster img {
+/* Estilo base removido - agora usando .poster-image */
+.movie-card:hover .poster-image.loaded {
   transform: scale(1.05);
 }
 
@@ -205,6 +200,128 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* === Estados de Imagem Assertivos === */
+
+/* Imagem com transição suave ao carregar */
+.poster-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.4s ease, transform 0.3s ease;
+  opacity: 0;
+}
+
+.poster-image.loaded {
+  opacity: 1;
+}
+
+.poster-image.loading {
+  opacity: 0.3;
+  filter: blur(2px);
+}
+
+/* Overlay de carregamento com pulso */
+.image-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(26, 26, 46, 0.9), rgba(15, 52, 96, 0.9));
+  z-index: 2;
+}
+
+.loading-pulse {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(99, 102, 241, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.loading-spinner-small {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  z-index: 1;
+}
+
+/* Indicador de sucesso quando imagem é atualizada */
+.image-success-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background: rgba(34, 197, 94, 0.95);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  animation: successPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.5);
+}
+
+.image-success-indicator svg {
+  width: 24px;
+  height: 24px;
+  color: white;
+  animation: checkDraw 0.3s ease 0.2s forwards;
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+}
+
+@keyframes successPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Badge com indicador de fallback */
+.movie-type.fallback-badge {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(139, 92, 246, 0.9));
+  padding-right: 8px;
+}
+
+.badge-indicator {
+  margin-left: 4px;
+  font-size: 10px;
+  animation: sparkle 1s ease infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
 }
 
 /* Grid responsivo para catálogo */

@@ -8,6 +8,29 @@ const TMDB_IMAGE = 'https://image.tmdb.org/t/p/w500';
 // Cache local para evitar requisições repetidas
 const imageCache = new Map<string, string | null>();
 
+// Categorias que indicam anime
+const ANIME_CATEGORIES = ['crunchyroll', 'funimation', 'anime', 'animes', 'animação'];
+
+/**
+ * Extrai o ano do nome do filme/série
+ */
+function extractYear(name: string): number | null {
+  const yearMatch = name.match(/\((\d{4})\)/);
+  if (yearMatch) {
+    return parseInt(yearMatch[1], 10);
+  }
+  return null;
+}
+
+/**
+ * Detecta se é anime baseado na categoria
+ */
+function isAnimeCategory(category?: string): boolean {
+  if (!category) return false;
+  const normalizedCategory = category.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return ANIME_CATEGORIES.some(anime => normalizedCategory.includes(anime));
+}
+
 /**
  * Limpa o nome do filme/série para busca
  */
@@ -67,11 +90,131 @@ interface TMDBResult {
   media_type?: string;
   release_date?: string;
   first_air_date?: string;
+  genre_ids?: number[];
+  origin_country?: string[];
+}
+
+// IDs de gêneros do TMDB para anime
+const ANIMATION_GENRE_ID = 16;
+
+/**
+ * Calcula score de correspondência para um resultado
+ * Considera: título, ano, tipo (anime/live-action), categoria
+ */
+function calculateMatchScore(
+  result: TMDBResult, 
+  searchTitle: string, 
+  targetYear: number | null, 
+  expectAnime: boolean,
+  category?: string
+): number {
+  let score = 0;
+  
+  const title = result.title || result.name || '';
+  const originalTitle = result.original_title || result.original_name || '';
+  const normalizedSearch = normalizeForComparison(searchTitle);
+  const normalizedTitle = normalizeForComparison(title);
+  const normalizedOriginal = normalizeForComparison(originalTitle);
+  
+  // Score por correspondência de título
+  if (normalizedTitle === normalizedSearch || normalizedOriginal === normalizedSearch) {
+    score += 50; // Match exato
+  } else if (normalizedTitle.includes(normalizedSearch) || normalizedOriginal.includes(normalizedSearch)) {
+    score += 30; // Match parcial
+  } else if (normalizedSearch.includes(normalizedTitle) || normalizedSearch.includes(normalizedOriginal)) {
+    score += 20; // Título contido na busca
+  }
+  
+  // Score por ano
+  const resultYear = result.release_date || result.first_air_date;
+  if (resultYear && targetYear) {
+    const year = parseInt(resultYear.substring(0, 4), 10);
+    if (year === targetYear) {
+      score += 40; // Ano exato - muito importante!
+    } else if (Math.abs(year - targetYear) <= 1) {
+      score += 20; // Ano próximo (±1)
+    } else if (Math.abs(year - targetYear) <= 3) {
+      score += 5; // Ano relativamente próximo
+    } else {
+      score -= Math.min(30, Math.abs(year - targetYear) * 3); // Penaliza anos muito diferentes
+    }
+  }
+  
+  // Score por tipo (anime vs live-action)
+  const isAnimation = result.genre_ids?.includes(ANIMATION_GENRE_ID) || false;
+  const isJapanese = result.origin_country?.includes('JP') || false;
+  const isLikelyAnime = isAnimation && isJapanese;
+  
+  if (expectAnime) {
+    if (isLikelyAnime) {
+      score += 35; // É anime e esperávamos anime
+    } else if (isAnimation) {
+      score += 15; // É animação mas não necessariamente anime japonês
+    } else {
+      score -= 25; // Esperávamos anime mas não é
+    }
+  } else {
+    // Se não esperamos anime (Netflix, Prime, etc.)
+    if (isLikelyAnime) {
+      score -= 20; // É anime mas não esperávamos
+    } else if (!isAnimation) {
+      score += 15; // Live-action como esperado
+    }
+  }
+  
+  // Bonus para Netflix quando categoria é Netflix
+  if (category) {
+    const normalizedCategory = category.toLowerCase();
+    if (normalizedCategory.includes('netflix')) {
+      // Se a série é do Netflix (origem EUA geralmente)
+      if (result.origin_country?.includes('US')) {
+        score += 10;
+      }
+    }
+  }
+  
+  // Preferir resultados com mais votos (mais confiáveis)
+  if (result.vote_count && result.vote_count > 100) {
+    score += 5;
+  }
+  
+  return score;
 }
 
 /**
- * Encontra o melhor resultado baseado na correspondência do título
- * Prioriza títulos que são correspondências exatas ou muito próximas
+ * Encontra o melhor resultado baseado em múltiplos critérios
+ * Usa: título, ano, tipo (anime/live-action), categoria
+ */
+function findBestMatchWithContext(
+  results: TMDBResult[], 
+  searchTitle: string, 
+  targetYear: number | null,
+  category?: string
+): TMDBResult | null {
+  if (!results || results.length === 0) return null;
+  
+  const expectAnime = isAnimeCategory(category);
+  
+  // Calcula score para cada resultado
+  const scoredResults = results.map(result => ({
+    result,
+    score: calculateMatchScore(result, searchTitle, targetYear, expectAnime, category)
+  }));
+  
+  // Ordena por score decrescente
+  scoredResults.sort((a, b) => b.score - a.score);
+  
+  // Retorna o melhor match (se tiver score positivo)
+  if (scoredResults[0].score > 0) {
+    return scoredResults[0].result;
+  }
+  
+  // Se nenhum tem score positivo, retorna o primeiro com poster
+  return results.find(r => r.poster_path) || results[0];
+}
+
+/**
+ * Encontra o melhor resultado baseado apenas no título (para funções que não precisam de categoria)
  */
 function findBestMatch(results: TMDBResult[], searchTitle: string): TMDBResult | null {
   if (!results || results.length === 0) return null;
@@ -89,35 +232,35 @@ function findBestMatch(results: TMDBResult[], searchTitle: string): TMDBResult |
     }
   }
   
-  // Segundo: busca título que começa exatamente com a busca (evita "Coragem Sob Fogo" quando buscando "Sob Fogo")
+  // Segundo: busca título que começa com a busca
   for (const result of results) {
     const title = result.title || result.name || '';
-    const originalTitle = result.original_title || result.original_name || '';
     const normalizedTitle = normalizeForComparison(title);
-    const normalizedOriginal = normalizeForComparison(originalTitle);
     
-    // Se o título normalizado é exatamente igual ou começa com a busca e tem tamanho similar
     if (normalizedTitle.startsWith(normalizedSearch) && normalizedTitle.length <= normalizedSearch.length + 5) {
-      return result;
-    }
-    if (normalizedOriginal.startsWith(normalizedSearch) && normalizedOriginal.length <= normalizedSearch.length + 5) {
       return result;
     }
   }
   
-  // Terceiro: retorna o primeiro resultado (comportamento original)
+  // Terceiro: retorna o primeiro resultado
   return results[0];
 }
 
 /**
  * Busca imagem usando a API multi-search (filme + série)
+ * NOVA VERSÃO: Usa ano e categoria para ser mais assertivo
  */
-export async function searchImage(title: string, type?: 'movie' | 'series'): Promise<string | null> {
+export async function searchImage(
+  title: string, 
+  type?: 'movie' | 'series',
+  category?: string
+): Promise<string | null> {
   const cleanedTitle = cleanTitle(title);
+  const targetYear = extractYear(title);
   
   if (!cleanedTitle || cleanedTitle.length < 2) return null;
   
-  const cacheKey = `${type || 'multi'}:${cleanedTitle.toLowerCase()}`;
+  const cacheKey = `${type || 'multi'}:${cleanedTitle.toLowerCase()}:${targetYear || ''}:${category || ''}`;
   
   if (imageCache.has(cacheKey)) {
     return imageCache.get(cacheKey) || null;
@@ -143,8 +286,8 @@ export async function searchImage(title: string, type?: 'movie' | 'series'): Pro
     const data = await response.json();
     
     if (data.results && data.results.length > 0) {
-      // Encontra o melhor match baseado no título
-      const bestMatch = findBestMatch(data.results, cleanedTitle);
+      // Encontra o melhor match usando ano + categoria + título
+      const bestMatch = findBestMatchWithContext(data.results, cleanedTitle, targetYear, category);
       if (bestMatch?.poster_path) {
         const imageUrl = `${TMDB_IMAGE}${bestMatch.poster_path}`;
         imageCache.set(cacheKey, imageUrl);
@@ -161,7 +304,7 @@ export async function searchImage(title: string, type?: 'movie' | 'series'): Pro
       if (responseEn.ok) {
         const dataEn = await responseEn.json();
         if (dataEn.results && dataEn.results.length > 0) {
-          const bestMatch = findBestMatch(dataEn.results, cleanedTitle);
+          const bestMatch = findBestMatchWithContext(dataEn.results, cleanedTitle, targetYear, category);
           if (bestMatch?.poster_path) {
             const imageUrl = `${TMDB_IMAGE}${bestMatch.poster_path}`;
             imageCache.set(cacheKey, imageUrl);
@@ -221,15 +364,20 @@ export interface MovieDetails {
 
 /**
  * Busca rating (nota) de um filme/série no TMDB
- * Suporta títulos em português!
+ * ATUALIZADO: Usa ano e categoria para ser mais assertivo
  * Retorna a nota de 0-10 ou null se não encontrar
  */
-export async function searchRating(title: string, type?: 'movie' | 'series'): Promise<number | null> {
+export async function searchRating(
+  title: string, 
+  type?: 'movie' | 'series',
+  category?: string
+): Promise<number | null> {
   const cleanedTitle = cleanTitle(title);
+  const targetYear = extractYear(title);
   
   if (!cleanedTitle || cleanedTitle.length < 2) return null;
   
-  const cacheKey = `rating:${type || 'multi'}:${cleanedTitle.toLowerCase()}`;
+  const cacheKey = `rating:${type || 'multi'}:${cleanedTitle.toLowerCase()}:${targetYear || ''}:${category || ''}`;
   
   if (ratingCache.has(cacheKey)) {
     return ratingCache.get(cacheKey) ?? null;
@@ -266,8 +414,8 @@ export async function searchRating(title: string, type?: 'movie' | 'series'): Pr
     }
     
     if (data.results && data.results.length > 0) {
-      // Encontra o melhor match baseado no título
-      const bestMatch = findBestMatch(data.results, cleanedTitle);
+      // Encontra o melhor match usando ano + categoria + título
+      const bestMatch = findBestMatchWithContext(data.results, cleanedTitle, targetYear, category);
       if (bestMatch) {
         const rating = bestMatch.vote_average;
         if (rating && rating > 0) {
@@ -320,13 +468,19 @@ function extractBrazilianCertification(releaseDates: { results: Array<{ iso_3166
 
 /**
  * Busca detalhes completos de um filme/série no TMDB
+ * ATUALIZADO: Usa ano e categoria para ser mais assertivo
  */
-export async function searchMovieDetails(title: string, type?: 'movie' | 'series'): Promise<MovieDetails | null> {
+export async function searchMovieDetails(
+  title: string, 
+  type?: 'movie' | 'series',
+  category?: string
+): Promise<MovieDetails | null> {
   const cleanedTitle = cleanTitle(title);
+  const targetYear = extractYear(title);
   
   if (!cleanedTitle || cleanedTitle.length < 2) return null;
   
-  const cacheKey = `details:${type || 'multi'}:${cleanedTitle.toLowerCase()}`;
+  const cacheKey = `details:${type || 'multi'}:${cleanedTitle.toLowerCase()}:${targetYear || ''}:${category || ''}`;
   
   if (detailsCache.has(cacheKey)) {
     return detailsCache.get(cacheKey) ?? null;
@@ -366,8 +520,8 @@ export async function searchMovieDetails(title: string, type?: 'movie' | 'series
       return null;
     }
     
-    // Encontra o melhor match baseado no título
-    const bestMatch = findBestMatch(searchData.results, cleanedTitle);
+    // Encontra o melhor match usando ano + categoria + título
+    const bestMatch = findBestMatchWithContext(searchData.results, cleanedTitle, targetYear, category);
     if (!bestMatch) {
       detailsCache.set(cacheKey, null);
       return null;
@@ -451,16 +605,22 @@ export async function searchMovieDetails(title: string, type?: 'movie' | 'series
 
 /**
  * Busca apenas a classificação indicativa de um filme/série
+ * ATUALIZADO: Usa ano e categoria para ser mais assertivo
  * Versão otimizada com cache próprio para carregar mais rápido nos cards
  */
 const certificationCache = new Map<string, string | null>();
 
-export async function searchCertification(title: string, type?: 'movie' | 'series'): Promise<string | null> {
+export async function searchCertification(
+  title: string, 
+  type?: 'movie' | 'series',
+  category?: string
+): Promise<string | null> {
   const cleanedTitle = cleanTitle(title);
+  const targetYear = extractYear(title);
   
   if (!cleanedTitle || cleanedTitle.length < 2) return null;
   
-  const cacheKey = `cert:${type || 'multi'}:${cleanedTitle.toLowerCase()}`;
+  const cacheKey = `cert:${type || 'multi'}:${cleanedTitle.toLowerCase()}:${targetYear || ''}:${category || ''}`;
   
   // Verifica cache primeiro
   if (certificationCache.has(cacheKey)) {
@@ -468,7 +628,7 @@ export async function searchCertification(title: string, type?: 'movie' | 'serie
   }
   
   // Se já temos os detalhes em cache, usa eles
-  const detailsCacheKey = `details:${type || 'multi'}:${cleanedTitle.toLowerCase()}`;
+  const detailsCacheKey = `details:${type || 'multi'}:${cleanedTitle.toLowerCase()}:${targetYear || ''}:${category || ''}`;
   if (detailsCache.has(detailsCacheKey)) {
     const details = detailsCache.get(detailsCacheKey);
     const cert = details?.certification || null;
@@ -510,8 +670,8 @@ export async function searchCertification(title: string, type?: 'movie' | 'serie
       return null;
     }
     
-    // Encontra o melhor match baseado no título
-    const bestMatch = findBestMatch(searchData.results, cleanedTitle);
+    // Encontra o melhor match usando ano + categoria + título
+    const bestMatch = findBestMatchWithContext(searchData.results, cleanedTitle, targetYear, category);
     if (!bestMatch) {
       certificationCache.set(cacheKey, null);
       return null;

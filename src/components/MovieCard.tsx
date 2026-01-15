@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useEffect } from 'react';
+import { memo, useState, useCallback, useEffect, useRef } from 'react';
 import type { Movie } from '../types/movie';
 import { searchImage } from '../services/imageService';
 import './MovieCard.css';
@@ -9,27 +9,63 @@ interface MovieCardProps {
   isActive?: boolean;
 }
 
+type ImageState = 'loading' | 'loaded' | 'error' | 'fallback-loading' | 'fallback-loaded' | 'no-image';
+
 export const MovieCard = memo(function MovieCard({ movie, onSelect, isActive }: MovieCardProps) {
   const [isFocused, setIsFocused] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [imageState, setImageState] = useState<ImageState>('loading');
   const [fallbackImage, setFallbackImage] = useState<string | null>(null);
-  const [loadingFallback, setLoadingFallback] = useState(false);
+  const [showSuccessIndicator, setShowSuccessIndicator] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const prevLogoRef = useRef<string | undefined>(movie.logo);
+
+  // Detecta mudança de imagem e mostra indicador de sucesso
+  useEffect(() => {
+    if (prevLogoRef.current !== movie.logo && movie.logo) {
+      setImageState('loading');
+      setFallbackImage(null);
+      // Mostra indicador de atualização quando a imagem muda
+      if (prevLogoRef.current) {
+        setShowSuccessIndicator(true);
+        const timer = setTimeout(() => setShowSuccessIndicator(false), 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+    prevLogoRef.current = movie.logo;
+  }, [movie.logo]);
 
   // Busca imagem do TMDB quando a imagem original falha
   useEffect(() => {
-    if (imageError && !fallbackImage && !loadingFallback) {
-      setLoadingFallback(true);
-      searchImage(movie.name, movie.type as 'movie' | 'series')
+    if (imageState === 'error' && !fallbackImage) {
+      setImageState('fallback-loading');
+      // Passa categoria para busca mais assertiva
+      searchImage(movie.name, movie.type as 'movie' | 'series', movie.category)
         .then(url => {
-          setFallbackImage(url);
-          setLoadingFallback(false);
+          if (url) {
+            setFallbackImage(url);
+            setImageState('fallback-loaded');
+          } else {
+            setImageState('no-image');
+          }
         })
-        .catch(() => setLoadingFallback(false));
+        .catch(() => setImageState('no-image'));
     }
-  }, [imageError, movie.name, movie.type, fallbackImage, loadingFallback]);
+  }, [imageState, movie.name, movie.type, movie.category, fallbackImage]);
+
+  const handleImageLoad = () => {
+    setImageState(fallbackImage ? 'fallback-loaded' : 'loaded');
+    if (showSuccessIndicator) {
+      // Mantém o indicador visível por mais tempo após carregar
+      setTimeout(() => setShowSuccessIndicator(false), 1500);
+    }
+  };
 
   const handleImageError = () => {
-    setImageError(true);
+    if (fallbackImage) {
+      setImageState('no-image');
+    } else {
+      setImageState('error');
+    }
   };
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -38,6 +74,10 @@ export const MovieCard = memo(function MovieCard({ movie, onSelect, isActive }: 
       onSelect(movie);
     }
   }, [onSelect, movie]);
+
+  const currentImage = fallbackImage || movie.logo;
+  const isLoading = imageState === 'loading' || imageState === 'fallback-loading';
+  const hasImage = (imageState === 'loaded' || imageState === 'fallback-loaded') && currentImage;
 
   return (
     <div 
@@ -52,21 +92,38 @@ export const MovieCard = memo(function MovieCard({ movie, onSelect, isActive }: 
       data-focusable="true"
     >
       <div className="movie-poster">
-        {(movie.logo && !imageError) || fallbackImage ? (
+        {/* Imagem principal com estados de loading */}
+        {currentImage && imageState !== 'no-image' && (
           <img 
-            src={fallbackImage || movie.logo} 
+            ref={imageRef}
+            src={currentImage} 
             alt={movie.name}
             loading="lazy"
+            className={`poster-image ${hasImage ? 'loaded' : ''} ${isLoading ? 'loading' : ''}`}
+            onLoad={handleImageLoad}
             onError={handleImageError}
           />
-        ) : loadingFallback ? (
-          <div className="movie-placeholder-styled">
-            <div className="placeholder-gradient" />
-            <div className="placeholder-content">
-              <div className="loading-spinner" />
-            </div>
+        )}
+
+        {/* Indicador de carregamento */}
+        {isLoading && (
+          <div className="image-loading-overlay">
+            <div className="loading-pulse" />
+            <div className="loading-spinner-small" />
           </div>
-        ) : (
+        )}
+
+        {/* Indicador de sucesso quando imagem é atualizada */}
+        {showSuccessIndicator && hasImage && (
+          <div className="image-success-indicator">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        )}
+
+        {/* Placeholder quando não tem imagem */}
+        {(imageState === 'no-image' || (!currentImage && !isLoading)) && (
           <div className="movie-placeholder-styled">
             <div className="placeholder-gradient" />
             <div className="placeholder-content">
@@ -77,6 +134,7 @@ export const MovieCard = memo(function MovieCard({ movie, onSelect, isActive }: 
             </div>
           </div>
         )}
+
         <div className="movie-overlay">
           <button className="play-btn" tabIndex={-1}>
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -84,8 +142,11 @@ export const MovieCard = memo(function MovieCard({ movie, onSelect, isActive }: 
             </svg>
           </button>
         </div>
-        <span className={`movie-type ${movie.type}`}>
+
+        {/* Badge de tipo com indicador de estado */}
+        <span className={`movie-type ${movie.type} ${imageState === 'fallback-loaded' ? 'fallback-badge' : ''}`}>
           {movie.type === 'series' ? '📺' : '🎬'}
+          {imageState === 'fallback-loaded' && <span className="badge-indicator">✨</span>}
         </span>
       </div>
       <div className="movie-info">
