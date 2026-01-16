@@ -1,195 +1,439 @@
+/* ========================================
+   CHANNEL CARD - ULTRA MODERN PREMIUM STYLE
+   ======================================== */
+
 .channel-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  min-height: 64px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  gap: 14px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: visible;
+  overflow: hidden;
+  min-height: 72px;
 }
 
 .channel-card::before {
-  display: none;
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(139, 92, 246, 0.08) 0%, 
+    rgba(236, 72, 153, 0.08) 50%,
+    rgba(6, 182, 212, 0.08) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.channel-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .channel-card:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.2);
+  transform: translateX(6px);
+  box-shadow: 
+    0 4px 20px rgba(139, 92, 246, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .channel-card:hover::before {
-  opacity: 0;
+  opacity: 1;
 }
 
+.channel-card:hover::after {
+  opacity: 0.5;
+}
+
+/* ========================================
+   ACTIVE STATE
+   ======================================== */
 .channel-card.active {
-  background: rgba(139, 92, 246, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
-  border-left: 2px solid #8b5cf6;
+  background: linear-gradient(135deg, 
+    rgba(139, 92, 246, 0.15) 0%, 
+    rgba(236, 72, 153, 0.1) 100%
+  );
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 
+    0 8px 32px rgba(139, 92, 246, 0.25),
+    0 0 0 1px rgba(139, 92, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.channel-number {
-  font-size: 11px;
-  font-weight: 700;
-  color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.15);
-  padding: 4px 6px;
-  border-radius: 6px;
-  min-width: 28px;
-  text-align: center;
-  flex-shrink: 0;
+.channel-card.active::before {
+  opacity: 1;
+}
+
+.channel-card.active .channel-name {
+  color: #fff;
 }
 
 .channel-card.active .channel-number {
-  background: rgba(139, 92, 246, 0.3);
-  color: #a78bfa;
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
 }
 
-.channel-logo {
-  position: relative;
-  width: 40px;
-  height: 40px;
+/* ========================================
+   CHANNEL NUMBER BADGE
+   ======================================== */
+.channel-number {
+  flex: 0 0 auto;
+  min-width: 42px;
+  height: 28px;
+  padding: 0 10px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.15);
   border-radius: 8px;
-  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a78bfa;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
 }
 
-.channel-logo-img {
+.channel-card:hover .channel-number {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
+  transform: scale(1.05);
+}
+
+/* ========================================
+   CHANNEL LOGO
+   ======================================== */
+.channel-logo {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.channel-logo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.channel-card:hover .channel-logo {
+  border-color: rgba(139, 92, 246, 0.3);
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
+}
+
+.channel-card:hover .channel-logo::before {
+  opacity: 1;
+}
+
+.channel-card.active .channel-logo {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+.channel-logo img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 4px;
-  background: #1a1a1a;
-  border-radius: 6px;
+  padding: 6px;
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
-.channel-initials {
-  font-size: 14px;
+.channel-card:hover .channel-logo img {
+  transform: scale(1.1);
+}
+
+/* Logo Fallback (Initials) */
+.channel-logo .initials {
+  font-size: 16px;
   font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #a78bfa;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  z-index: 1;
 }
 
-.live-indicator {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 14px;
-  height: 14px;
-  background: #ef4444;
+/* Loading Spinner */
+.channel-logo .loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  border-top-color: #8b5cf6;
   border-radius: 50%;
-  border: 2px solid #0d0d0d;
-  animation: pulse 2s infinite;
+  animation: spin 0.8s linear infinite;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
-  }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
+/* ========================================
+   CHANNEL INFO
+   ======================================== */
 .channel-info {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 4px;
-  overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .channel-name {
   font-size: 14px;
   font-weight: 600;
-  color: #f1f1f1;
-  margin: 0;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  word-break: break-word;
-}
-
-.channel-category {
-  font-size: 11px;
-  color: #888;
-  display: block;
+  color: rgba(255, 255, 255, 0.9);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.3s ease;
+  letter-spacing: 0.2px;
 }
 
+.channel-card:hover .channel-name {
+  color: #fff;
+}
+
+.channel-category {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ========================================
+   LIVE INDICATOR
+   ======================================== */
+.live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ef4444;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.live-indicator::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: live-pulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+/* ========================================
+   FAVORITE BUTTON
+   ======================================== */
 .favorite-btn {
+  flex: 0 0 auto;
   width: 36px;
   height: 36px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
   border: none;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  color: #666;
-  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.favorite-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .favorite-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fbbf24;
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
   transform: scale(1.1);
 }
 
-.favorite-btn.is-favorite {
-  color: #fbbf24;
+.favorite-btn:hover::before {
+  opacity: 1;
 }
 
-.favorite-btn.is-favorite:hover {
-  color: #f59e0b;
+.favorite-btn.active {
+  color: #ec4899;
+  background: rgba(236, 72, 153, 0.15);
+}
+
+.favorite-btn.active svg {
+  fill: #ec4899;
+  filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.5));
+}
+
+.favorite-btn.active:hover {
+  transform: scale(1.15);
 }
 
 .favorite-btn svg {
   width: 18px;
   height: 18px;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
 
-/* Mobile responsiveness */
+/* Success Animation */
+.favorite-btn.success::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.4) 0%, transparent 70%);
+  animation: success-ripple 0.6s ease-out forwards;
+}
+
+@keyframes success-ripple {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* ========================================
+   COLLAPSED STATE (SIDEBAR COLLAPSED)
+   ======================================== */
+.sidebar.collapsed .channel-card {
+  padding: 8px;
+  justify-content: center;
+  min-height: 64px;
+  border-radius: 12px;
+}
+
+.sidebar.collapsed .channel-card:hover {
+  transform: scale(1.05);
+}
+
+.sidebar.collapsed .channel-number,
+.sidebar.collapsed .channel-info,
+.sidebar.collapsed .favorite-btn {
+  display: none;
+}
+
+.sidebar.collapsed .channel-logo {
+  width: 44px;
+  height: 44px;
+}
+
+/* ========================================
+   KEYBOARD FOCUS
+   ======================================== */
+.channel-card:focus-visible {
+  outline: none;
+  box-shadow: 
+    0 0 0 2px rgba(139, 92, 246, 0.5),
+    0 4px 20px rgba(139, 92, 246, 0.2);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+.channel-card {
+  animation: fadeInUp 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Staggered Animation for Cards */
+.category-channels .channel-card:nth-child(1) { animation-delay: 0.05s; }
+.category-channels .channel-card:nth-child(2) { animation-delay: 0.1s; }
+.category-channels .channel-card:nth-child(3) { animation-delay: 0.15s; }
+.category-channels .channel-card:nth-child(4) { animation-delay: 0.2s; }
+.category-channels .channel-card:nth-child(5) { animation-delay: 0.25s; }
+.category-channels .channel-card:nth-child(6) { animation-delay: 0.3s; }
+.category-channels .channel-card:nth-child(7) { animation-delay: 0.35s; }
+.category-channels .channel-card:nth-child(8) { animation-delay: 0.4s; }
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
 @media (max-width: 768px) {
   .channel-card {
-    padding: 10px 12px;
-    min-height: 58px;
-    gap: 8px;
-  }
-
-  .channel-card:hover {
-    transform: none;
+    padding: 10px 14px;
+    gap: 12px;
+    min-height: 64px;
   }
 
   .channel-number {
-    font-size: 10px;
-    padding: 3px 5px;
-    min-width: 24px;
+    min-width: 36px;
+    height: 24px;
+    font-size: 11px;
   }
 
   .channel-logo {
-    width: 36px;
-    height: 36px;
-  }
-
-  .channel-initials {
-    font-size: 12px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
   }
 
   .channel-name {
@@ -197,7 +441,7 @@
   }
 
   .channel-category {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .favorite-btn {
@@ -209,143 +453,39 @@
     width: 16px;
     height: 16px;
   }
-
-  .live-indicator {
-    width: 12px;
-    height: 12px;
-  }
 }
 
-/* Small Mobile */
-@media (max-width: 480px) {
+/* ========================================
+   HIGH CONTRAST MODE
+   ======================================== */
+@media (prefers-contrast: high) {
   .channel-card {
-    padding: 8px 10px;
-    min-height: 52px;
-    gap: 6px;
-    border-radius: 10px;
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
-  .channel-number {
-    font-size: 9px;
-    padding: 2px 4px;
-    min-width: 22px;
-    border-radius: 4px;
-  }
-
-  .channel-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-  }
-
-  .channel-logo-img {
-    padding: 3px;
-    border-radius: 5px;
-  }
-
-  .channel-initials {
-    font-size: 11px;
+  .channel-card.active {
+    border-color: #8b5cf6;
   }
 
   .channel-name {
-    font-size: 12px;
-  }
-
-  .channel-category {
-    font-size: 9px;
-  }
-
-  .favorite-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-  }
-
-  .favorite-btn svg {
-    width: 14px;
-    height: 14px;
+    color: #fff;
   }
 }
 
-/* === Estados de Imagem Assertivos === */
-
-.channel-logo-img {
-  transition: opacity 0.3s ease;
-  opacity: 0;
-}
-
-.channel-logo-img.loaded {
-  opacity: 1;
-}
-
-.channel-logo-img.loading {
-  opacity: 0.3;
-  filter: blur(1px);
-}
-
-/* Overlay de carregamento */
-.channel-loading-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(26, 26, 46, 0.8);
-  border-radius: 8px;
-  z-index: 2;
-}
-
-.channel-loading-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-top-color: #8b5cf6;
-  border-radius: 50%;
-  animation: channelSpin 0.6s linear infinite;
-}
-
-@keyframes channelSpin {
-  to { transform: rotate(360deg); }
-}
-
-/* Indicador de sucesso */
-.channel-success-indicator {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(34, 197, 94, 0.9);
-  border-radius: 8px;
-  z-index: 10;
-  animation: channelSuccessPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-.channel-success-indicator svg {
-  width: 20px;
-  height: 20px;
-  color: white;
-  animation: channelCheckDraw 0.3s ease 0.15s forwards;
-  stroke-dasharray: 24;
-  stroke-dashoffset: 24;
-}
-
-@keyframes channelSuccessPop {
-  0% {
-    transform: scale(0);
-    opacity: 0;
+/* ========================================
+   REDUCED MOTION
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .channel-card,
+  .channel-logo,
+  .channel-number,
+  .favorite-btn,
+  .loading-spinner {
+    animation: none;
+    transition: none;
   }
-  60% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
 
-@keyframes channelCheckDraw {
-  to {
-    stroke-dashoffset: 0;
+  .live-indicator::before {
+    animation: none;
   }
 }

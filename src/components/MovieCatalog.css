@@ -731,6 +731,26 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.hero-category-tag {
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e9d5ff;
+  backdrop-filter: blur(10px);
+}
+
+.hero-synopsis {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin: 0 0 24px;
+  max-width: 600px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
 /* Hero Navigation Buttons */
 .hero-nav {
   position: absolute;

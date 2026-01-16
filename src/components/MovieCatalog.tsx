@@ -1081,46 +1081,159 @@ const HeroBanner = memo(function HeroBanner({
   movie: Movie;
   onSelect: (movie: Movie) => void;
 }) {
-  const fallbackUrl = `https://picsum.photos/1920/800?random=${movie.id}`;
+  // Estado para carrossel de múltiplos filmes
+  const [featuredMovies, setFeaturedMovies] = useState<Movie[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [movieDetails, setMovieDetails] = useState<Map<string, MovieDetails>>(new Map());
+
+  // Carrega filmes de destaque de várias categorias
+  useEffect(() => {
+    const loadFeatured = async () => {
+      const categories = ['🎬 Lançamentos', '📺 Netflix', '📺 Prime Video', '📺 Disney+', '📺 Max'];
+      const allMovies: Movie[] = [];
+      
+      for (const cat of categories) {
+        try {
+          const data = await loadCategory(cat);
+          const movies = data.filter(m => m.type === 'movie').slice(0, 2);
+          allMovies.push(...movies);
+        } catch (e) {
+          console.log('Erro ao carregar categoria:', cat);
+        }
+      }
+      
+      // Pega 5 filmes aleatórios
+      const shuffled = allMovies.sort(() => Math.random() - 0.5).slice(0, 5);
+      if (shuffled.length > 0) {
+        setFeaturedMovies(shuffled);
+      } else {
+        setFeaturedMovies([movie]);
+      }
+    };
+    
+    loadFeatured();
+  }, [movie]);
+
+  // Carrega detalhes TMDB para cada filme
+  useEffect(() => {
+    featuredMovies.forEach(async (m) => {
+      if (!movieDetails.has(m.id)) {
+        try {
+          const details = await searchMovieDetails(m.name, m.type);
+          if (details) {
+            setMovieDetails(prev => new Map(prev).set(m.id, details));
+          }
+        } catch (e) {
+          console.log('Erro ao buscar detalhes:', m.name);
+        }
+      }
+    });
+  }, [featuredMovies]);
+
+  // Auto-rotação do carrossel
+  useEffect(() => {
+    if (featuredMovies.length <= 1 || isPaused) return;
+    
+    const interval = setInterval(() => {
+      setCurrentIndex(prev => (prev + 1) % featuredMovies.length);
+    }, 7000);
+    
+    return () => clearInterval(interval);
+  }, [featuredMovies.length, isPaused]);
+
+  const currentMovie = featuredMovies[currentIndex] || movie;
+  const details = movieDetails.get(currentMovie.id);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      onSelect(movie);
+      onSelect(currentMovie);
+    } else if (e.key === 'ArrowLeft') {
+      setCurrentIndex(prev => prev === 0 ? featuredMovies.length - 1 : prev - 1);
+    } else if (e.key === 'ArrowRight') {
+      setCurrentIndex(prev => (prev + 1) % featuredMovies.length);
     }
-  }, [onSelect, movie]);
+  }, [onSelect, currentMovie, featuredMovies.length]);
+
+  const goToPrev = () => setCurrentIndex(prev => prev === 0 ? featuredMovies.length - 1 : prev - 1);
+  const goToNext = () => setCurrentIndex(prev => (prev + 1) % featuredMovies.length);
+
+  const getCertClass = (cert: string) => {
+    if (cert === 'L') return 'cert-l';
+    if (cert === '10') return 'cert-10';
+    if (cert === '12') return 'cert-12';
+    if (cert === '14') return 'cert-14';
+    if (cert === '16') return 'cert-16';
+    if (cert === '18') return 'cert-18';
+    return `cert-${cert.replace('+', '').toLowerCase()}`;
+  };
 
   return (
     <div 
       className="hero-banner" 
-      onClick={() => onSelect(movie)}
+      onClick={() => onSelect(currentMovie)}
       onKeyDown={handleKeyDown}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
       role="button"
       tabIndex={0}
       data-focusable="true"
       data-focus-key="hero-banner"
     >
       <div className="hero-backdrop">
-        <LazyImage 
-          src={movie.logo || fallbackUrl} 
-          alt={movie.name}
-          fallbackText={movie.name}
-          className="hero-image"
-        />
+        {details?.backdropPath ? (
+          <img 
+            src={details.backdropPath} 
+            alt={currentMovie.name}
+            className="hero-image loaded"
+            loading="eager"
+          />
+        ) : (
+          <LazyImage 
+            src={currentMovie.logo || `https://picsum.photos/1920/800?random=${currentMovie.id}`} 
+            alt={currentMovie.name}
+            fallbackText={currentMovie.name}
+            className="hero-image"
+          />
+        )}
         <div className="hero-gradient" />
       </div>
       
       <div className="hero-content">
         <div className="hero-badge">
-          {movie.type === 'series' ? '📺 Série em Destaque' : '🎬 Filme em Destaque'}
+          {currentMovie.type === 'series' ? '📺 Série em Destaque' : '🎬 Filme em Destaque'}
         </div>
-        <h1 className="hero-title">{movie.name}</h1>
-        <p className="hero-category">{movie.category}</p>
+        <h1 className="hero-title">{details?.title || currentMovie.name}</h1>
+        
+        {/* Meta info do TMDB */}
+        <div className="hero-meta">
+          {details?.rating && details.rating > 0 && (
+            <span className={`hero-rating ${details.rating >= 7 ? 'high' : details.rating >= 5 ? 'medium' : 'low'}`}>
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+              </svg>
+              {details.rating.toFixed(1)}
+            </span>
+          )}
+          {details?.certification && (
+            <span className={`hero-certification ${getCertClass(details.certification)}`}>
+              {details.certification}
+            </span>
+          )}
+          {details?.year && <span className="hero-year">{details.year}</span>}
+          <span className="hero-category-tag">{currentMovie.category}</span>
+        </div>
+
+        {/* Sinopse */}
+        {details?.overview && (
+          <p className="hero-synopsis">{details.overview.substring(0, 200)}{details.overview.length > 200 ? '...' : ''}</p>
+        )}
         
         <div className="hero-actions">
           <button 
             className="hero-play-btn" 
-            onClick={(e) => { e.stopPropagation(); onSelect(movie); }}
+            onClick={(e) => { e.stopPropagation(); onSelect(currentMovie); }}
             tabIndex={-1}
           >
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -1128,8 +1241,48 @@ const HeroBanner = memo(function HeroBanner({
             </svg>
             Assistir
           </button>
+          <button 
+            className="hero-info-btn" 
+            onClick={(e) => { e.stopPropagation(); onSelect(currentMovie); }}
+            tabIndex={-1}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            Mais Info
+          </button>
         </div>
       </div>
+
+      {/* Navegação do carrossel */}
+      {featuredMovies.length > 1 && (
+        <>
+          <button className="hero-nav hero-nav-prev" onClick={(e) => { e.stopPropagation(); goToPrev(); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+          <button className="hero-nav hero-nav-next" onClick={(e) => { e.stopPropagation(); goToNext(); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+          
+          {/* Indicadores */}
+          <div className="hero-indicators">
+            {featuredMovies.map((_, idx) => (
+              <button
+                key={idx}
+                className={`hero-indicator ${idx === currentIndex ? 'active' : ''}`}
+                onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
+              >
+                <span className="indicator-progress" />
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 });
