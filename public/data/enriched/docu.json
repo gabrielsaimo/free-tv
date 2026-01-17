@@ -1,0 +1,138 @@
+[
+  {
+    "id": "o-reino-do-lobo-branco",
+    "name": "O Reino do Lobo Branco (2019)",
+    "category": "Docu",
+    "type": "series",
+    "isAdult": false,
+    "episodes": {
+      "1": [
+        {
+          "episode": 1,
+          "name": "O Reino do Lobo Branco (2019) S01 E01",
+          "url": "http://coneasy.lat:80/series/kyeoj2w4/0drti608/3683876.mp4",
+          "id": "o-reino-do-lobo-branco-2019-s01-e01-3683876"
+        },
+        {
+          "episode": 2,
+          "name": "O Reino do Lobo Branco (2019) S01 E02",
+          "url": "http://coneasy.lat:80/series/kyeoj2w4/0drti608/3683877.mp4",
+          "id": "o-reino-do-lobo-branco-2019-s01-e02-3683877"
+        },
+        {
+          "episode": 3,
+          "name": "O Reino do Lobo Branco (2019) S01 E03",
+          "url": "http://coneasy.lat:80/series/kyeoj2w4/0drti608/3683878.mp4",
+          "id": "o-reino-do-lobo-branco-2019-s01-e03-3683878"
+        }
+      ]
+    },
+    "totalEpisodes": 3,
+    "totalSeasons": 1,
+    "tmdb": {
+      "id": 92894,
+      "imdbId": "tt10704300",
+      "title": "O Reino do Lobo-Branco",
+      "originalTitle": "Kingdom of the White Wolf",
+      "tagline": null,
+      "overview": "Ronan Donovan, pesquisador da National Geographic, viaja para o Ártico para estudar lobos. O pesquisador desvenda a fascinante vida do lobo branco, que possui duas camadas de proteção que o mantém quente em condições frias e seguro à prova d'água.",
+      "status": "Ended",
+      "language": "en",
+      "firstAirDate": "2019-08-25",
+      "lastAirDate": "2019-08-25",
+      "year": "2019",
+      "episodeRuntime": null,
+      "rating": 7.5,
+      "voteCount": 11,
+      "popularity": 0,
+      "certification": "10",
+      "genres": [
+        "Documentário"
+      ],
+      "poster": "https://image.tmdb.org/t/p/w500/195lUgtW73NZTWKoSOXgXhjoXXz.jpg",
+      "posterHD": "https://image.tmdb.org/t/p/original/195lUgtW73NZTWKoSOXgXhjoXXz.jpg",
+      "backdrop": "https://image.tmdb.org/t/p/w1280/f23RyFkgRo0RzfZJ27hLUBx3Fkv.jpg",
+      "backdropHD": "https://image.tmdb.org/t/p/original/f23RyFkgRo0RzfZJ27hLUBx3Fkv.jpg",
+      "logo": "https://image.tmdb.org/t/p/w500/k8rAdu9vLIcNToRM9gpCAUMAxI1.png",
+      "cast": [
+        {
+          "id": 2785013,
+          "name": "Ronan Donovan",
+          "character": "Self",
+          "photo": "https://image.tmdb.org/t/p/w185/dNI5XFhIviOrKSpTv1Q09FZhpiL.jpg"
+        }
+      ],
+      "creators": [],
+      "writers": [
+        "Neil Shea",
+        "Tony Gerber"
+      ],
+      "keywords": [
+        "wolf",
+        "nature documentary",
+        "doğa belgeseli",
+        "hayvanlar ve doğa"
+      ],
+      "companies": [
+        "Market Road Films"
+      ],
+      "countries": [
+        "US"
+      ],
+      "seasons": 1,
+      "episodes": 3,
+      "inProduction": false,
+      "networks": [
+        "Nat Geo Wild",
+        "National Geographic"
+      ],
+      "recommendations": [
+        {
+          "id": 226362,
+          "title": "O Eternauta",
+          "poster": "https://image.tmdb.org/t/p/w185/9BaOdE76IgnMoy3a5xFDE7znsaO.jpg",
+          "rating": 7.5
+        },
+        {
+          "id": 218230,
+          "title": "O Jogo da Morte",
+          "poster": "https://image.tmdb.org/t/p/w185/3JkL7dMFw3gXtPRrmMOKXJD1Ude.jpg",
+          "rating": 8.4
+        },
+        {
+          "id": 66732,
+          "title": "Stranger Things",
+          "poster": "https://image.tmdb.org/t/p/w185/twfKp60THrcOIep9sjHODOOfO8d.jpg",
+          "rating": 8.6
+        },
+        {
+          "id": 1396,
+          "title": "Breaking Bad",
+          "poster": "https://image.tmdb.org/t/p/w185/hGwm9Cj3CdbJIqQWNExQqiYmCd4.jpg",
+          "rating": 8.9
+        },
+        {
+          "id": 48891,
+          "title": "Brooklyn Nine-Nine: Lei e Desordem",
+          "poster": "https://image.tmdb.org/t/p/w185/A3SymGlOHefSKbz1bCOz56moupS.jpg",
+          "rating": 8.2
+        },
+        {
+          "id": 13916,
+          "title": "Death Note",
+          "poster": "https://image.tmdb.org/t/p/w185/tCZFfYTIwrR7n94J6G14Y4hAFU6.jpg",
+          "rating": 8.6
+        }
+      ],
+      "streaming": [
+        "Disney Plus"
+      ],
+      "imdb": "tt10704300",
+      "facebook": null,
+      "instagram": null,
+      "twitter": null
+    },
+    "url": "http://coneasy.lat:80/series/kyeoj2w4/0drti608/3683876.mp4",
+    "logo": "http://file.gstaticontent.com//t/p/w600_and_h900_bestv2/aSBFFl8tWvwAlMZKIsOX9OT2FJl.jpg"
+  }
+]
