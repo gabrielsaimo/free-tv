@@ -14,7 +14,26 @@ function normalizeForMatch(str) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    // Remove ano entre parênteses
+    .replace(/\(\d{4}\)/g, '')
+    // Remove [L], [HD], [4K], etc
+    .replace(/\[.*?\]/g, '')
+    // Remove espaços extras e caracteres especiais
     .replace(/[^a-z0-9]+/g, '');
+}
+
+function normalizeEpisodeName(name) {
+  // Normaliza especificamente para episódios
+  // Remove ano, tags, espaços extras mas mantém S/E
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\(\d{4}\)/g, '') // Remove (2018)
+    .replace(/\[l\]/gi, '') // Remove [L]
+    .replace(/\[.*?\]/g, '') // Remove outras tags
+    .replace(/\s+/g, '') // Remove todos os espaços
+    .trim();
 }
 
 function findBestMatch(enrichedItem, sourceItems) {
@@ -44,12 +63,12 @@ function updateCategory(categoryFile) {
   
   // Verifica se ambos os arquivos existem
   if (!fs.existsSync(enrichedPath)) {
-    return { updated: 0, notFound: 0, total: 0, skipped: true };
+    return { updated: 0, notFound: 0, total: 0, episodesUpdated: 0, skipped: true };
   }
   
   if (!fs.existsSync(sourcePath)) {
     console.log(`   ⚠️ Arquivo fonte não encontrado: ${categoryFile}`);
-    return { updated: 0, notFound: 0, total: 0, skipped: true };
+    return { updated: 0, notFound: 0, total: 0, episodesUpdated: 0, skipped: true };
   }
   
   // Lê os arquivos
@@ -58,28 +77,58 @@ function updateCategory(categoryFile) {
   
   let updated = 0;
   let notFound = 0;
+  let episodesUpdated = 0;
   
   // Atualiza cada item enriched
   for (const enrichedItem of enrichedData) {
-    const match = findBestMatch(enrichedItem, sourceData);
-    
-    if (match && match.url !== enrichedItem.url) {
-      // Atualiza a URL mantendo todos os outros dados
-      enrichedItem.url = match.url;
-      
-      // Atualiza o logo se tiver um novo
-      if (match.logo && match.logo !== enrichedItem.logo) {
-        enrichedItem.logo = match.logo;
+    // Se for série com episódios, atualiza os episódios
+    if (enrichedItem.type === 'series' && enrichedItem.episodes) {
+      // Para cada temporada
+      for (const season in enrichedItem.episodes) {
+        const episodes = enrichedItem.episodes[season];
+        
+        // Para cada episódio
+        for (const episode of episodes) {
+          const enrichedNormalized = normalizeEpisodeName(episode.name);
+          
+          // Procura o episódio correspondente no source
+          const sourceEpisode = sourceData.find(s => {
+            const sourceNormalized = normalizeEpisodeName(s.name);
+            return sourceNormalized === enrichedNormalized;
+          });
+          
+          if (sourceEpisode && sourceEpisode.url !== episode.url) {
+            episode.url = sourceEpisode.url;
+            if (sourceEpisode.logo) {
+              episode.logo = sourceEpisode.logo;
+            }
+            episodesUpdated++;
+          }
+        }
       }
-      
       updated++;
-    } else if (!match) {
-      notFound++;
+    } else {
+      // Para filmes, mantém o comportamento anterior
+      const match = findBestMatch(enrichedItem, sourceData);
+      
+      if (match && match.url !== enrichedItem.url) {
+        // Atualiza a URL mantendo todos os outros dados
+        enrichedItem.url = match.url;
+        
+        // Atualiza o logo se tiver um novo
+        if (match.logo && match.logo !== enrichedItem.logo) {
+          enrichedItem.logo = match.logo;
+        }
+        
+        updated++;
+      } else if (!match) {
+        notFound++;
+      }
     }
   }
   
   // Salva o arquivo atualizado
-  if (updated > 0) {
+  if (updated > 0 || episodesUpdated > 0) {
     fs.writeFileSync(enrichedPath, JSON.stringify(enrichedData, null, 2), 'utf8');
   }
   
@@ -87,6 +136,7 @@ function updateCategory(categoryFile) {
     updated,
     notFound,
     total: enrichedData.length,
+    episodesUpdated,
     skipped: false
   };
 }
@@ -110,6 +160,7 @@ function main() {
   let totalUpdated = 0;
   let totalNotFound = 0;
   let totalProcessed = 0;
+  let totalEpisodesUpdated = 0;
   let filesUpdated = 0;
   let filesSkipped = 0;
   
@@ -124,11 +175,17 @@ function main() {
     totalProcessed += result.total;
     totalUpdated += result.updated;
     totalNotFound += result.notFound;
+    totalEpisodesUpdated += result.episodesUpdated;
     
-    if (result.updated > 0) {
+    if (result.updated > 0 || result.episodesUpdated > 0) {
       filesUpdated++;
       console.log(`✅ ${file}`);
-      console.log(`   📊 ${result.updated} URLs atualizadas de ${result.total} items`);
+      if (result.updated > 0) {
+        console.log(`   📊 ${result.updated} URLs atualizadas de ${result.total} items`);
+      }
+      if (result.episodesUpdated > 0) {
+        console.log(`   📺 ${result.episodesUpdated} episódios atualizados`);
+      }
       if (result.notFound > 0) {
         console.log(`   ⚠️ ${result.notFound} items sem match`);
       }
@@ -145,6 +202,7 @@ function main() {
   console.log(`⏭️ Arquivos pulados: ${filesSkipped}`);
   console.log(`📝 Total de items: ${totalProcessed}`);
   console.log(`🔄 URLs atualizadas: ${totalUpdated}`);
+  console.log(`📺 Episódios atualizados: ${totalEpisodesUpdated}`);
   console.log(`⚠️ Items sem match: ${totalNotFound}`);
   console.log('═'.repeat(60));
   console.log('\n✅ Atualização concluída!');
