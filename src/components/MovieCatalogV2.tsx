@@ -964,6 +964,9 @@ const MovieDetailsModal = memo(function MovieDetailsModal({
                 src={tmdb?.posterHD || tmdb?.poster} 
                 alt={tmdb?.title || item.name}
               />
+              {tmdb?.certification && (
+                <CertificationBadge cert={tmdb.certification} />
+              )}
             </div>
             
             <div className="modal-info">
@@ -988,8 +991,6 @@ const MovieDetailsModal = memo(function MovieDetailsModal({
                   </div>
                 )}
                 
-                <CertificationBadge cert={tmdb?.certification} />
-                
                 {tmdb?.year && <span className="meta-item">{tmdb.year}</span>}
                 
                 {tmdb?.runtime && (
@@ -1003,20 +1004,20 @@ const MovieDetailsModal = memo(function MovieDetailsModal({
                 )}
               </div>
               
+              {/* Sinopse */}
+              {tmdb?.overview && (
+                <div className="modal-overview">
+                  <h3>Sinopse</h3>
+                  <p>{tmdb.overview}</p>
+                </div>
+              )}
+              
               {/* Gêneros */}
               {tmdb?.genres && tmdb.genres.length > 0 && (
                 <div className="modal-genres">
                   {tmdb.genres.map(genre => (
                     <span key={genre} className="genre-tag">{genre}</span>
                   ))}
-                </div>
-              )}
-              
-              {/* Sinopse */}
-              {tmdb?.overview && (
-                <div className="modal-overview">
-                  <h3>Sinopse</h3>
-                  <p>{tmdb.overview}</p>
                 </div>
               )}
               

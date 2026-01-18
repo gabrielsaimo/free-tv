@@ -94,8 +94,10 @@
    ============================================================ */
 
 .catalog-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 500;
   display: flex;
   align-items: center;
@@ -518,7 +520,7 @@
    ============================================================ */
 
 .catalog-main {
-  padding: 0 24px 40px;
+  padding: 100px 24px 40px; /* 100px = 84px header + 16px extra spacing */
 }
 
 /* ============================================================
@@ -530,7 +532,7 @@
   height: 70vh;
   min-height: 500px;
   max-height: 800px;
-  margin: -80px -24px 40px;
+  margin: 0 -24px 40px;
   overflow: hidden;
   cursor: pointer;
 }
@@ -925,7 +927,8 @@
 .card-poster .lazy-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover !important;
+  object-position: center top;
   transition: transform var(--transition-slow);
 }
 
@@ -1167,13 +1170,23 @@
 
 .category-grid-page {
   padding: 24px;
+  padding-top: 100px; /* Compensar header fixo */
 }
 
 .grid-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 500;
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 32px;
+  padding: 20px 24px;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .grid-header .back-btn {
@@ -1389,15 +1402,28 @@
 .modal-poster {
   flex-shrink: 0;
   width: 200px;
-  aspect-ratio: 2/3;
+  height: fit-content;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
+  position: relative;
 }
 
 .modal-poster .lazy-image {
   width: 100%;
-  height: 100%;
+  display: block;
+}
+
+.modal-poster .lazy-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.modal-poster .certification-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
 }
 
 .modal-info {
@@ -1926,7 +1952,7 @@
   }
   
   .catalog-main {
-    padding: 0 16px 24px;
+    padding: 90px 16px 24px; /* Mantém padding-top para header fixo */
   }
   
   .content-card {
