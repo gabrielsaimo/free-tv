@@ -5,6 +5,23 @@ export const config = {
   runtime: 'edge',
 };
 
+// Função para copiar os headers relevantes para o streaming
+function copyStreamingHeaders(from: Headers, to: Headers) {
+  const headersToCopy = [
+    'content-type',
+    'content-length',
+    'content-range',
+    'accept-ranges',
+    'last-modified',
+    'etag',
+  ];
+  for (const h of headersToCopy) {
+    if (from.has(h)) {
+      to.set(h, from.get(h)!);
+    }
+  }
+}
+
 export default async function handler(req: Request): Promise<Response> {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -29,10 +46,8 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    // Decodificar a URL
     const decodedUrl = decodeURIComponent(videoUrl);
     
-    // Verificar se é uma URL HTTP válida
     if (!decodedUrl.startsWith('http://') && !decodedUrl.startsWith('https://')) {
       return new Response(JSON.stringify({ error: 'Invalid URL protocol' }), {
         status: 400,
@@ -40,55 +55,74 @@ export default async function handler(req: Request): Promise<Response> {
       });
     }
 
-    // Headers para fazer o streaming do vídeo
-    const headers: Record<string, string> = {};
+    const clientHeaders: Record<string, string> = {
+      'User-Agent': req.headers.get('user-agent') || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Referer': req.headers.get('referer') || '',
+      'X-Forwarded-For': req.headers.get('x-forwarded-for') || '',
+    };
 
-    // Suportar Range requests para seek no vídeo
     const rangeHeader = req.headers.get('range');
     if (rangeHeader) {
-      headers['Range'] = rangeHeader;
+      clientHeaders['Range'] = rangeHeader;
     }
-
-    // Fazer a requisição seguindo redirects
-    const response = await fetch(decodedUrl, {
+    
+    // 1. Faz a primeira requisição sem seguir o redirect para capturar a URL final
+    const firstResponse = await fetch(decodedUrl, {
       method: 'GET',
-      headers,
-      redirect: 'follow', // Seguir redirects automaticamente
+      headers: clientHeaders,
+      redirect: 'manual', // Captura o redirect manualmente
     });
 
-    if (!response.ok && response.status !== 206) {
+    let finalUrl = decodedUrl;
+    const isRedirect = firstResponse.status >= 300 && firstResponse.status < 400;
+
+    if (isRedirect && firstResponse.headers.has('location')) {
+      // Se for redirect, pega a nova URL
+      finalUrl = firstResponse.headers.get('location')!;
+    } else if (!firstResponse.ok && firstResponse.status !== 206) {
+      // Se não for redirect e der erro, retorna o erro
       return new Response(JSON.stringify({ 
-        error: `Failed to fetch video: ${response.statusText}`,
-        status: response.status
+        error: `Failed to fetch video (initial request): ${firstResponse.statusText}`,
+        status: firstResponse.status
       }), {
-        status: response.status,
+        status: firstResponse.status,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    // Criar headers da resposta
+    // 2. Faz a requisição final para a URL correta (a original ou a do redirect)
+    const finalResponse = await fetch(finalUrl, {
+      method: 'GET',
+      headers: clientHeaders,
+    });
+    
+    if (!finalResponse.ok && finalResponse.status !== 206) {
+      return new Response(JSON.stringify({ 
+        error: `Failed to fetch video (final request): ${finalResponse.statusText}`,
+        status: finalResponse.status,
+        url: finalUrl
+      }), {
+        status: finalResponse.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Criar headers da resposta para o cliente
     const responseHeaders = new Headers();
     responseHeaders.set('Access-Control-Allow-Origin', '*');
     responseHeaders.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
     responseHeaders.set('Access-Control-Allow-Headers', 'Range');
     responseHeaders.set('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
     
-    // Copiar headers relevantes da resposta original
-    const contentType = response.headers.get('content-type');
-    const contentLength = response.headers.get('content-length');
-    const contentRange = response.headers.get('content-range');
-    const acceptRanges = response.headers.get('accept-ranges');
+    // Copia os headers importantes da resposta final
+    copyStreamingHeaders(finalResponse.headers, responseHeaders);
 
-    if (contentType) responseHeaders.set('Content-Type', contentType);
-    if (contentLength) responseHeaders.set('Content-Length', contentLength);
-    if (contentRange) responseHeaders.set('Content-Range', contentRange);
-    if (acceptRanges) responseHeaders.set('Accept-Ranges', acceptRanges);
-
-    // Retornar stream do vídeo (Edge Functions suportam streaming real)
-    return new Response(response.body, {
-      status: response.status,
+    // Retorna o stream do vídeo para o cliente
+    return new Response(finalResponse.body, {
+      status: finalResponse.status,
       headers: responseHeaders,
     });
+
   } catch (error) {
     console.error('Proxy error:', error);
     return new Response(JSON.stringify({ 

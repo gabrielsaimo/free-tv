@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback, memo, useMemo } from 'react';
 import type { Movie } from '../types/movie';
-import { getProxiedUrl } from '../utils/proxyUrl';
+import { getProxiedUrl, needsProxy } from '../utils/proxyUrl';
 import castService, { type CastMethod, type CastState } from '../services/castService';
 import './MoviePlayer.css';
 
@@ -148,7 +148,11 @@ export const MoviePlayer = memo(function MoviePlayer({ movie, onBack, seriesInfo
           errorMessage = 'Erro ao decodificar o vídeo.';
           break;
         case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
-          errorMessage = 'Formato de vídeo não suportado ou URL inválida.';
+          if (movie && needsProxy(movie.url)) {
+            errorMessage = 'O provedor de vídeo bloqueou o acesso seguro. Tente "Abrir em nova aba".';
+          } else {
+            errorMessage = 'Formato de vídeo não suportado ou URL inválida.';
+          }
           break;
       }
       
