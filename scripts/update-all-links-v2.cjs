@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const M3U8_FILE = path.join(__dirname, '../public/data/CanaisBR03.m3u');
+const M3U8_FILE = path.join(__dirname, '../public/data/CanaisBR06.m3u');
 const ENRICHED_DIR = path.join(__dirname, '../public/data/enriched');
 
 function normalizeBaseName(name) {
