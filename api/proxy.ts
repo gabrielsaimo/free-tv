@@ -57,8 +57,10 @@ export default async function handler(req: Request): Promise<Response> {
 
     // Encaminha os headers do cliente que podem ser relevantes para o servidor de vídeo
     const clientHeaders: Record<string, string> = {
-      'User-Agent': req.headers.get('user-agent') || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Referer': `https://google.com/`, // Simula um referer genérico
+      // Força um User-Agent comum para evitar bloqueios baseados em User-Agent de servidor
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      // Define o Referer como a própria URL de origem do vídeo, o que é mais realista
+      'Referer': new URL(decodedUrl).origin,
     };
 
     // Encaminha o IP do cliente original
