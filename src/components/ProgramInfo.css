@@ -7,9 +7,12 @@
   padding: 0;
   opacity: 0;
   transform: translateY(-20px);
-  transition: all 0.4s ease;
+  transition: opacity 0.4s ease, transform 0.4s ease;
   z-index: 25;
   pointer-events: none;
+  will-change: opacity, transform;
+  /* Garante que não afeta o layout do player */
+  contain: layout style paint;
 }
 
 .program-info.visible {
@@ -55,8 +58,10 @@
 .program-content {
   display: flex;
   align-items: flex-start;
-  gap: 20px;
-  padding: 16px 20px;
+  gap: 24px;
+  padding: 20px 24px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Programa atual */
@@ -205,33 +210,37 @@
 /* Botões de ação */
 .program-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
 .program-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .program-btn:hover {
   background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .program-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .expand-btn {

@@ -31,7 +31,6 @@ import {
   searchActors,
   getAvailableRecommendations,
   getSimilarByGenre,
-  getFeaturedItems,
   getRecentReleases,
   STREAMING_CATEGORIES,
   GENRE_CATEGORIES,
@@ -1477,7 +1476,6 @@ export function MovieCatalogV2({ onSelectMovie, onBack, isAdultUnlocked = false 
   const [modalState, setModalState] = useState<ModalState>({ type: null, data: null });
   
   // Dados
-  const [featuredItems, setFeaturedItems] = useState<EnrichedMovie[]>([]);
   const [categoryData, setCategoryData] = useState<Map<string, EnrichedMovie[]>>(new Map());
   const [availableGenres, setAvailableGenres] = useState<string[]>([]);
   const [availableYears, setAvailableYears] = useState<string[]>([]);
@@ -1503,7 +1501,6 @@ export function MovieCatalogV2({ onSelectMovie, onBack, isAdultUnlocked = false 
       setIsInitialized(true);
       
       // Carrega dados iniciais
-      setFeaturedItems(getFeaturedItems('movie', 8));
       setAvailableGenres(getAvailableGenres());
       setAvailableYears(getAvailableYears());
       setAvailableCertifications(getAvailableCertifications());
@@ -1782,9 +1779,9 @@ export function MovieCatalogV2({ onSelectMovie, onBack, isAdultUnlocked = false 
           </section>
         ) : (
           <>
-            {/* Hero Banner */}
+            {/* Hero Banner - Tendências de Hoje */}
             <HeroBanner
-              items={featuredItems}
+              items={trendingToday.slice(0, 20)}
               onSelect={handleSelectItem}
             />
             

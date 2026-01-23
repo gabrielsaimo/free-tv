@@ -6,10 +6,13 @@
   background: #000;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: none;
   min-height: 0;
   max-height: 100%;
+  /* Otimizações de performance */
+  will-change: auto;
+  contain: layout style;
 }
 
 .video-player-container.show-controls {
@@ -27,7 +30,10 @@
   height: 100%;
   object-fit: contain;
   background: #000;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Garante que o vídeo não seja afetado por overlays */
+  position: relative;
+  z-index: 1;
 }
 
 .video-element.mirrored {
@@ -88,43 +94,48 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80px;
-  height: 80px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.25);
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 15;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-  opacity: 0.8;
+  z-index: 50;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  opacity: 0.85;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .center-play-btn svg {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .center-play-btn:hover {
-  background: rgba(139, 92, 246, 0.6);
-  border-color: #a855f7;
-  transform: translate(-50%, -50%) scale(1.1);
+  background: rgba(139, 92, 246, 0.7);
+  border-color: rgba(168, 85, 247, 0.6);
+  transform: translate(-50%, -50%) scale(1.12);
   opacity: 1;
+  box-shadow: 0 12px 48px rgba(139, 92, 246, 0.4);
 }
 
 .center-play-btn:focus,
 .center-play-btn.dpad-focused,
 .center-play-btn[data-focused="true"] {
-  background: rgba(139, 92, 246, 0.8);
+  background: rgba(139, 92, 246, 0.85);
   border-color: #a855f7;
   box-shadow: 
-    0 0 0 4px rgba(168, 85, 247, 0.4),
-    0 0 40px rgba(168, 85, 247, 0.6);
-  transform: translate(-50%, -50%) scale(1.15);
+    0 0 0 4px rgba(168, 85, 247, 0.3),
+    0 0 48px rgba(168, 85, 247, 0.6),
+    0 12px 48px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%) scale(1.18);
   opacity: 1;
   outline: none;
 }
@@ -217,16 +228,28 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 24px 20px 20px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
+  padding: 32px 24px 24px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.98) 0%,
+    rgba(0, 0, 0, 0.85) 40%,
+    rgba(0, 0, 0, 0.4) 70%,
+    transparent 100%
+  );
   display: flex;
   align-items: center;
   justify-content: space-between;
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  z-index: 20;
+  transform: translateY(30px);
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
   pointer-events: none;
+  will-change: opacity, transform;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  /* Garantir visibilidade em Smart TVs */
+  min-height: 80px;
 }
 
 .video-player-container.show-controls .video-controls {
@@ -262,24 +285,42 @@
 }
 
 .control-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .control-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn:hover::before {
+  opacity: 1;
 }
 
 /* D-pad focus styles for control buttons */
