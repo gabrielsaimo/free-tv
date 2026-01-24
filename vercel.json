@@ -1,4 +1,7 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
@@ -15,7 +18,9 @@
   ],
   "functions": {
     "api/proxy.ts": {
+      "runtime": "@vercel/edge",
       "maxDuration": 60
     }
   }
 }
+
