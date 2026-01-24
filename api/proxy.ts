@@ -65,8 +65,10 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     // Headers otimizados para evitar bloqueios de servidores
+    // NOTA: Servidores IPTV frequentemente bloqueiam IPs de datacenter
+    // Usamos headers minimalistas para parecer um cliente legítimo
     const clientHeaders: Record<string, string> = {
-      // User-Agent realista que se parece com navegador real
+      // User-Agent realista
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
       // Referer - MUITO IMPORTANTE para evitar bloqueios 403
       'Referer': decodedUrl.includes('camelo.vip') ? 'http://camelo.vip/' :
@@ -76,14 +78,9 @@ export default async function handler(req: Request): Promise<Response> {
       'Origin': decodedUrl.includes('camelo.vip') ? 'http://camelo.vip' :
         decodedUrl.includes('govfederal.org') ? 'http://govfederal.org' :
           new URL(decodedUrl).origin,
-      // Headers padrão de navegador
-      'Accept': 'video/mp4,video/webm,video/*,*/*;q=0.8',
+      // Headers básicos de navegador (sem Sec-Fetch-* que identificam proxies)
+      'Accept': '*/*',
       'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Connection': 'keep-alive',
-      'Sec-Fetch-Dest': 'video',
-      'Sec-Fetch-Mode': 'no-cors', // IMPORTANTE: usa no-cors para evitar verificações
-      'Sec-Fetch-Site': 'cross-site',
     };
 
     // Suporte para Range requests (essencial para seeking)
@@ -197,31 +194,48 @@ export default async function handler(req: Request): Promise<Response> {
 
       // Tenta uma última estratégia se for 403
       if (finalResponse.status === 403) {
-        console.log('403 Forbidden detectado, tentando estratégia alternativa...');
+        console.log('403 Forbidden detectado, tentando estratégias alternativas...');
 
-        // Remove mais headers restritivos
-        const simplifiedHeaders: Record<string, string> = {
+        // Estratégia 1: Retry com Referer original + headers mínimos
+        const retryHeaders1: Record<string, string> = {
           'User-Agent': clientHeaders['User-Agent'],
-          'Accept': clientHeaders['Accept'],
+          'Referer': originalReferer,
+          'Accept': '*/*',
         };
-
-        if (rangeHeader) {
-          simplifiedHeaders['Range'] = rangeHeader;
-        }
-
+        if (rangeHeader) retryHeaders1['Range'] = rangeHeader;
 
         try {
-          const retryResponse = await fetch(currentUrl, {
-            method: 'GET',
-            headers: simplifiedHeaders,
-          });
-
-          if (retryResponse.ok || retryResponse.status === 206) {
-            console.log('Estratégia alternativa funcionou!');
-            finalResponse = retryResponse;
+          console.log('Tentativa 1: headers mínimos com Referer original');
+          const retry1 = await fetch(currentUrl, { method: 'GET', headers: retryHeaders1 });
+          if (retry1.ok || retry1.status === 206) {
+            console.log('Estratégia 1 funcionou!');
+            finalResponse = retry1;
+          } else {
+            await retry1.body?.cancel();
           }
-        } catch (retryError) {
-          console.log('Estratégia alternativa também falhou:', retryError);
+        } catch (e) {
+          console.log('Estratégia 1 falhou:', e);
+        }
+
+        // Estratégia 2: Apenas User-Agent (alguns servidores não aceitam Referer de outro domínio)
+        if (!finalResponse.ok && finalResponse.status !== 206) {
+          const retryHeaders2: Record<string, string> = {
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36',
+          };
+          if (rangeHeader) retryHeaders2['Range'] = rangeHeader;
+
+          try {
+            console.log('Tentativa 2: apenas User-Agent mobile');
+            const retry2 = await fetch(currentUrl, { method: 'GET', headers: retryHeaders2 });
+            if (retry2.ok || retry2.status === 206) {
+              console.log('Estratégia 2 funcionou!');
+              finalResponse = retry2;
+            } else {
+              await retry2.body?.cancel();
+            }
+          } catch (e) {
+            console.log('Estratégia 2 falhou:', e);
+          }
         }
       }
 
