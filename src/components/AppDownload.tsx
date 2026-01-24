@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import './AppDownload.css';
 
-const APK_DOWNLOAD_URL = 'https://github.com/gabrielsaimo/free-tv/releases/download/v9.9/Saimo-TV-v9.9.apk';
-const APP_VERSION = '9.9';
+const APK_DOWNLOAD_URL = 'https://github.com/gabrielsaimo/free-tv/releases/download/v10/saimo_tv.apk';
+const APP_VERSION = '10';
 
 export function AppDownload() {
   const [isLoaded, setIsLoaded] = useState(false);
