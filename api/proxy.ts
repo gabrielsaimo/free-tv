@@ -3,6 +3,7 @@ export const config = {
 };
 
 // Função para copiar os headers de streaming da resposta final para o cliente
+// NOTA: Não copiamos cache-control para manter nosso no-store
 function copyStreamingHeaders(from: Headers, to: Headers): void {
   const headersToCopy = [
     'content-type',
@@ -11,7 +12,7 @@ function copyStreamingHeaders(from: Headers, to: Headers): void {
     'accept-ranges',
     'last-modified',
     'etag',
-    'cache-control',
+    // REMOVIDO: 'cache-control' - queremos manter nosso no-store
   ];
   for (const h of headersToCopy) {
     if (from.has(h)) {
@@ -260,6 +261,12 @@ export default async function handler(req: Request): Promise<Response> {
     responseHeaders.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
     responseHeaders.set('Access-Control-Allow-Headers', 'Range');
     responseHeaders.set('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges, ETag, Last-Modified, Cache-Control');
+
+    // IMPORTANTE: Desabilitar cache da Vercel para evitar respostas corrompidas
+    // A Vercel estava cacheando respostas vazias e servindo-as como válidas
+    responseHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    responseHeaders.set('CDN-Cache-Control', 'no-store');
+    responseHeaders.set('Vercel-CDN-Cache-Control', 'no-store');
 
     copyStreamingHeaders(finalResponse.headers, responseHeaders);
 
