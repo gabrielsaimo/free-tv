@@ -94,6 +94,11 @@ export default async function handler(req: Request): Promise<Response> {
 
     console.log('Headers sendo enviados:', clientHeaders);
 
+    // IMPORTANTE: Guardar o Referer/Origin originais - alguns servidores exigem
+    // que esses headers se mantenham mesmo após redirects para IPs diferentes
+    const originalReferer = clientHeaders['Referer'];
+    const originalOrigin = clientHeaders['Origin'];
+
     let currentUrl = decodedUrl;
     let finalResponse: Response | null = null;
     const maxRedirects = 5;
@@ -147,10 +152,12 @@ export default async function handler(req: Request): Promise<Response> {
 
           console.log('URL após resolver redirect:', currentUrl);
 
-          // Atualiza headers de origem para a nova URL
-          const newOrigin = new URL(currentUrl).origin;
-          clientHeaders['Origin'] = newOrigin;
-          clientHeaders['Referer'] = newOrigin + '/';
+          // IMPORTANTE: NÃO atualizar Referer/Origin após redirect!
+          // Servidores como camelo.vip redirecionam para IPs mas esperam
+          // que o Referer continue sendo o domínio original
+          // Mantemos os headers originais:
+          clientHeaders['Referer'] = originalReferer;
+          clientHeaders['Origin'] = originalOrigin;
           continue;
         }
 
