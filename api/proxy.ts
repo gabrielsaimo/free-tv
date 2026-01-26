@@ -97,10 +97,19 @@ export default async function handler(req: Request): Promise<Response> {
     let finalResponse: Response | null = null;
     const maxRedirects = 5;
 
-    console.log('Iniciando fetch para:', currentUrl);
+    // Coleta logs para debug se solicitado
+    const isDebug = url.searchParams.get('debug') === 'true';
+    const debugLogs: any[] = [];
+
+    const logDebug = (msg: string, data?: any) => {
+      console.log(msg, data || '');
+      if (isDebug) debugLogs.push({ msg, data, time: new Date().toISOString() });
+    };
+
+    logDebug('Iniciando fetch para:', currentUrl);
 
     for (let i = 0; i < maxRedirects; i++) {
-      console.log(`Tentativa ${i + 1} de ${maxRedirects}:`, currentUrl);
+      logDebug(`Tentativa ${i + 1} de ${maxRedirects}:`, currentUrl);
 
       try {
         const response = await fetch(currentUrl, {
@@ -109,144 +118,131 @@ export default async function handler(req: Request): Promise<Response> {
           redirect: 'manual',
         });
 
-        console.log('Resposta do servidor:', {
+        logDebug('Resposta do servidor:', {
           status: response.status,
           statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries())
         });
 
         // Se for um redirect (status 3xx), atualiza a URL e continua
         if (response.status >= 300 && response.status < 400 && response.headers.has('location')) {
           const locationHeader = response.headers.get('location')!;
-          console.log('Redirect detectado para:', locationHeader);
+          logDebug('Redirect detectado para:', locationHeader);
 
-          // IMPORTANTE: Cancelar o body stream para liberar recursos no Edge Runtime
-          // Sem isso, a conexão pode ficar aberta e interferir com os próximos fetches
           try {
             await response.body?.cancel();
-          } catch {
-            // Ignora erros ao cancelar o body
-          }
+          } catch { }
 
-          // Resolver a URL de redirect preservando a codificação original
-          // O problema: new URL().href pode decodificar %20 para espaços, 
-          // e alguns servidores requerem a forma codificada
           if (locationHeader.startsWith('http://') || locationHeader.startsWith('https://')) {
-            // URL absoluta - usar diretamente (preserva a codificação original)
             currentUrl = locationHeader;
           } else if (locationHeader.startsWith('/')) {
-            // URL relativa à raiz - combinar com origin da URL atual
             const baseUrl = new URL(currentUrl);
             currentUrl = baseUrl.origin + locationHeader;
           } else {
-            // URL relativa ao path atual
             const baseUrl = new URL(currentUrl);
             const basePath = baseUrl.pathname.substring(0, baseUrl.pathname.lastIndexOf('/') + 1);
             currentUrl = baseUrl.origin + basePath + locationHeader;
           }
 
-          console.log('URL após resolver redirect:', currentUrl);
+          logDebug('URL após resolver redirect:', currentUrl);
 
-          // IMPORTANTE: NÃO atualizar Referer/Origin após redirect!
-          // Servidores como camelo.vip redirecionam para IPs mas esperam
-          // que o Referer continue sendo o domínio original
-          // Mantemos os headers originais:
+          // IMPORTANTE: Manter headers originais no redirect
           clientHeaders['Referer'] = originalReferer;
           clientHeaders['Origin'] = originalOrigin;
           continue;
         }
 
-
         finalResponse = response;
         break;
       } catch (fetchError) {
-        console.log('Erro no fetch:', fetchError);
+        logDebug('Erro no fetch:', fetchError instanceof Error ? fetchError.message : fetchError);
 
-        // Se falhou, tenta uma estratégia alternativa sem alguns headers
         if (i === 0) {
-          console.log('Tentando estratégia alternativa...');
+          logDebug('Tentando estratégia alternativa (removendo headers Sec-*)...');
           delete clientHeaders['Sec-Fetch-Mode'];
           delete clientHeaders['Sec-Fetch-Dest'];
           delete clientHeaders['Sec-Fetch-Site'];
           continue;
         }
-
         throw fetchError;
       }
     }
 
     if (!finalResponse) {
-      console.log('Erro: muitos redirects ou falhas');
-      return new Response(JSON.stringify({ error: 'Too many redirects or fetch failures' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
+      if (isDebug) return new Response(JSON.stringify({ error: 'No response', logs: debugLogs }, null, 2), { headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ error: 'Too many redirects or fetch failures' }), { status: 500 });
+    }
+
+    // Tenta uma última estratégia se for 403 ou 404
+    if (finalResponse.status === 403 || finalResponse.status === 404) {
+      logDebug(`${finalResponse.status} detectado, tentando estratégias alternativas...`);
+
+      // Estratégia 1: Retry com Referer original + headers mínimos
+      const retryHeaders1: Record<string, string> = {
+        'User-Agent': clientHeaders['User-Agent'],
+        'Referer': originalReferer,
+        'Accept': '*/*',
+      };
+      if (rangeHeader) retryHeaders1['Range'] = rangeHeader;
+
+      try {
+        logDebug('Tentativa Extra 1: headers mínimos com Referer original');
+        const retry1 = await fetch(currentUrl, { method: 'GET', headers: retryHeaders1 });
+        logDebug('Resposta Extra 1:', { status: retry1.status });
+
+        if (retry1.ok || retry1.status === 206) {
+          logDebug('Estratégia 1 funcionou!');
+          finalResponse = retry1;
+        } else {
+          await retry1.body?.cancel();
+        }
+      } catch (e) {
+        logDebug('Estratégia 1 falhou:', e);
+      }
+
+      // Estratégia 2: Mobile UA, sem Referer
+      if (!finalResponse.ok && finalResponse.status !== 206) {
+        const retryHeaders2: Record<string, string> = {
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36',
+        };
+        if (rangeHeader) retryHeaders2['Range'] = rangeHeader;
+
+        try {
+          logDebug('Tentativa Extra 2: apenas User-Agent mobile');
+          const retry2 = await fetch(currentUrl, { method: 'GET', headers: retryHeaders2 });
+          logDebug('Resposta Extra 2:', { status: retry2.status });
+
+          if (retry2.ok || retry2.status === 206) {
+            logDebug('Estratégia 2 funcionou!');
+            finalResponse = retry2;
+          } else {
+            await retry2.body?.cancel();
+          }
+        } catch (e) {
+          logDebug('Estratégia 2 falhou:', e);
+        }
+      }
+    }
+
+    if (isDebug) {
+      return new Response(JSON.stringify({
+        msg: 'Debug Complete',
+        finalStatus: finalResponse.status,
+        logs: debugLogs
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
     if (!finalResponse.ok && finalResponse.status !== 206) {
-      console.log('Erro na resposta final:', {
+      return new Response(JSON.stringify({
+        error: `Failed to fetch video: ${finalResponse.statusText}`,
         status: finalResponse.status,
-        statusText: finalResponse.statusText,
         url: currentUrl
+      }), {
+        status: finalResponse.status,
+        headers: { 'Content-Type': 'application/json' },
       });
-
-      // Tenta uma última estratégia se for 403 ou 404 (alguns servidores retornam 404 para bloquear)
-      if (finalResponse.status === 403 || finalResponse.status === 404) {
-        console.log(`${finalResponse.status} detectado, tentando estratégias alternativas...`);
-
-        // Estratégia 1: Retry com Referer original + headers mínimos
-        const retryHeaders1: Record<string, string> = {
-          'User-Agent': clientHeaders['User-Agent'],
-          'Referer': originalReferer,
-          'Accept': '*/*',
-        };
-        if (rangeHeader) retryHeaders1['Range'] = rangeHeader;
-
-        try {
-          console.log('Tentativa 1: headers mínimos com Referer original');
-          const retry1 = await fetch(currentUrl, { method: 'GET', headers: retryHeaders1 });
-          if (retry1.ok || retry1.status === 206) {
-            console.log('Estratégia 1 funcionou!');
-            finalResponse = retry1;
-          } else {
-            await retry1.body?.cancel();
-          }
-        } catch (e) {
-          console.log('Estratégia 1 falhou:', e);
-        }
-
-        // Estratégia 2: Apenas User-Agent (alguns servidores não aceitam Referer de outro domínio)
-        if (!finalResponse.ok && finalResponse.status !== 206) {
-          const retryHeaders2: Record<string, string> = {
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36',
-          };
-          if (rangeHeader) retryHeaders2['Range'] = rangeHeader;
-
-          try {
-            console.log('Tentativa 2: apenas User-Agent mobile');
-            const retry2 = await fetch(currentUrl, { method: 'GET', headers: retryHeaders2 });
-            if (retry2.ok || retry2.status === 206) {
-              console.log('Estratégia 2 funcionou!');
-              finalResponse = retry2;
-            } else {
-              await retry2.body?.cancel();
-            }
-          } catch (e) {
-            console.log('Estratégia 2 falhou:', e);
-          }
-        }
-      }
-
-      // Se ainda não funcionou, retorna erro
-      if (!finalResponse.ok && finalResponse.status !== 206) {
-        return new Response(JSON.stringify({
-          error: `Failed to fetch video: ${finalResponse.statusText}`,
-          status: finalResponse.status,
-          url: currentUrl
-        }), {
-          status: finalResponse.status,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
     }
 
     console.log('Sucesso! Montando resposta proxy...');
