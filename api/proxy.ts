@@ -71,10 +71,10 @@ export default async function handler(req: Request): Promise<Response> {
     const clientHeaders: Record<string, string> = {
       // User-Agent realista
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-      // Referer - MUITO IMPORTANTE para evitar bloqueios 403
-      'Referer': `${new URL(decodedUrl).origin}/`,
-      // Origin importante para CORS
-      'Origin': new URL(decodedUrl).origin,
+      // Referer - Normalizado sem portas padrão (80/443) para maximizar compatibilidade
+      'Referer': `${new URL(decodedUrl).protocol}//${new URL(decodedUrl).hostname}/`,
+      // Origin - Normalizado sem portas padrão
+      'Origin': `${new URL(decodedUrl).protocol}//${new URL(decodedUrl).hostname}`,
       // Headers básicos de navegador (sem Sec-Fetch-* que identificam proxies)
       'Accept': '*/*',
       'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
