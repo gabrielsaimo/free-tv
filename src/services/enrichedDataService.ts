@@ -13,6 +13,8 @@ import type {
   FilterOptions,
   ActorFilmography
 } from '../types/enrichedMovie';
+import { fetchM3UData } from './m3uService';
+import { findMatch } from '../utils/m3uMatcher';
 
 // Cache de dados carregados
 const dataCache = new Map<string, EnrichedMovie[]>();
@@ -213,6 +215,9 @@ export async function loadEnrichedCategory(categoryName: string): Promise<Enrich
     return dataCache.get(categoryName)!;
   }
 
+  // Garante que o mapa do M3U esteja carregado
+  const m3uMap = await fetchM3UData();
+
   // Encontra o arquivo da categoria (busca em normais e adultos)
   let category = ENRICHED_CATEGORIES.find(c => c.name === categoryName);
   if (!category) {
@@ -239,8 +244,8 @@ export async function loadEnrichedCategory(categoryName: string): Promise<Enrich
     // Cacheia os dados
     dataCache.set(categoryName, data);
 
-    // Indexa atores, gêneros, anos, etc.
-    indexData(data);
+    // Atualiza URLs dinamicamente usando o M3U e indexa dados
+    processAndIndexData(data, m3uMap);
 
     return data;
   } catch (error) {
@@ -250,10 +255,39 @@ export async function loadEnrichedCategory(categoryName: string): Promise<Enrich
 }
 
 /**
- * Indexa dados para busca rápida
+ * Processa e indexa dados para busca rápida
+ * Também atualiza URLs com base no M3U
  */
-function indexData(movies: EnrichedMovie[]): void {
+function processAndIndexData(movies: EnrichedMovie[], m3uMap: Map<string, string>): void {
   for (const movie of movies) {
+
+    // Tenta atualizar a URL com a versão mais recente do M3U
+    const m3uUrl = findMatch(movie.name, movie.tmdb?.originalTitle, m3uMap);
+    if (m3uUrl) {
+      movie.url = m3uUrl;
+    }
+
+    // Se for série, atualiza os episódios também
+    if (movie.type === 'series' && 'episodes' in movie) {
+      const series = movie as EnrichedSeries;
+      // Percorre temporadas
+      Object.entries(series.episodes).forEach(([season, episodes]) => {
+        episodes.forEach(episode => {
+          // Constrói nome para busca: "Nome Série Sxx Exx"
+          // O episódio já tem um nome, mas geralmente é só "Episódio X"
+          // Precisamos reconstruir o padrão de busca
+          const seasonNum = season.replace(/\D/g, '').padStart(2, '0');
+          const episodeNum = String(episode.episode).padStart(2, '0');
+          const searchName = `${movie.name} S${seasonNum} E${episodeNum}`;
+
+          const epUrl = findMatch(searchName, undefined, m3uMap);
+          if (epUrl) {
+            episode.url = epUrl;
+          }
+        });
+      });
+    }
+
     if (!movie.tmdb) continue;
 
     // Indexa gêneros
@@ -317,6 +351,9 @@ export async function initializeEnrichedData(): Promise<void> {
       '📺 Disney+',
       '📺 Max',
     ];
+
+    // Carrega mapa M3U primeiro
+    await fetchM3UData();
 
     await Promise.all(priorityCategories.map(cat => loadEnrichedCategory(cat)));
 
