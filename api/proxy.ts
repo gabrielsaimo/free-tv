@@ -146,6 +146,15 @@ export default async function handler(req: Request): Promise<Response> {
 
           logDebug('URL após resolver redirect:', currentUrl);
 
+          // Captura cookies do redirecionamento para manter a sessão
+          const setCookie = response.headers.get('set-cookie');
+          if (setCookie) {
+            logDebug('Cookie recebido no redirect:', setCookie);
+            const existingCookie = clientHeaders['Cookie'] || '';
+            // Basic cookie merging (append)
+            clientHeaders['Cookie'] = existingCookie ? `${existingCookie}; ${setCookie}` : setCookie;
+          }
+
           // IMPORTANTE: Manter headers originais no redirect
           clientHeaders['Referer'] = originalReferer;
           clientHeaders['Origin'] = originalOrigin;
@@ -183,6 +192,8 @@ export default async function handler(req: Request): Promise<Response> {
         'Referer': originalReferer,
         'Accept': '*/*',
       };
+      // Forward cookies for retry too!
+      if (clientHeaders['Cookie']) retryHeaders1['Cookie'] = clientHeaders['Cookie'];
       if (rangeHeader) retryHeaders1['Range'] = rangeHeader;
 
       try {
