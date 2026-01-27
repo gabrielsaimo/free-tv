@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import Hls from 'hls.js';
+import mpegts from 'mpegts.js';
 import './StreamTester.css';
 
 interface StreamTesterProps {
@@ -11,6 +12,7 @@ export function StreamTester({ initialUrl = '' }: StreamTesterProps) {
   const backupVideoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const backupHlsRef = useRef<Hls | null>(null);
+  const mpegtsRef = useRef<mpegts.Player | null>(null);
   const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isRefreshingRef = useRef(false);
@@ -47,6 +49,10 @@ export function StreamTester({ initialUrl = '' }: StreamTesterProps) {
     if (backupHlsRef.current) {
       backupHlsRef.current.destroy();
       backupHlsRef.current = null;
+    }
+    if (mpegtsRef.current) {
+      mpegtsRef.current.destroy();
+      mpegtsRef.current = null;
     }
   }, []);
 
@@ -143,6 +149,60 @@ export function StreamTester({ initialUrl = '' }: StreamTesterProps) {
         addLog('❌ Erro ao carregar vídeo MP4.');
       });
       video.load();
+    } else if (streamUrl.endsWith('.ts') || streamUrl.includes('.ts?')) {
+      if (mpegts.isSupported()) {
+          addLog('Detectado formato MPEG-TS. Iniciando mpegts.js...');
+          
+          try {
+              const player = mpegts.createPlayer({
+                  type: 'mpegts',
+                  isLive: true,
+                  url: streamUrl,
+                  cors: true, // Tenta habilitar CORS
+              }, {
+                  enableWorker: true,
+                  lazyLoadMaxDuration: 3 * 60,
+                  seekType: 'range',
+              });
+
+              player.attachMediaElement(video);
+              player.load();
+              
+              player.on(mpegts.Events.ERROR, (type, details) => {
+                  if (type === mpegts.ErrorTypes.NETWORK_ERROR) {
+                      addLog(`❌ Erro de Rede mpegts: ${details}`);
+                      setError(`Erro de Rede: ${details}`);
+                  } else {
+                      addLog(`❌ Erro mpegts: ${type} - ${details}`);
+                      setError(`Erro mpegts: ${details}`);
+                  }
+                  setIsLoading(false);
+              });
+
+              player.on(mpegts.Events.LOADING_COMPLETE, () => {
+                  addLog('✅ Carregamento mpegts completo');
+                  setIsLoading(false);
+              });
+              
+              // Tenta reproduzir quando tiver dados suficientes
+              video.addEventListener('canplay', () => {
+                   setIsLoading(false);
+                   playVideo(video);
+              }, { once: true });
+
+              mpegtsRef.current = player;
+              
+              playVideo(video);
+          } catch (e) {
+               addLog(`❌ Exceção ao criar mpegts player: ${e}`);
+               setError('Falha ao iniciar mpegts.js');
+               setIsLoading(false);
+          }
+      } else {
+          addLog('❌ mpegts.js não suportado neste navegador.');
+          setError('Browser não suporta mpegts.js');
+          setIsLoading(false);
+      }
     } else if (Hls.isSupported()) {
       addLog('Detectado formato HLS (M3U8).');
       const hls = createHlsInstance(
